@@ -7,34 +7,19 @@ private int num_evac;
 private int safe_node;
 private int nb_edge;
 private int nb_node;
-private ArrayList<Path_data> evac_paths;
-private HashMap<Integer, HashMap<Integer, Edge_data>> edges;
+public ArrayList<Path_data> evac_paths;
+private HashMap<Integer, HashMap<Integer, Edge_data>> edges;  // origin, hashmap<destination, edge_data>
 
-class Edge_data {
+public class Edge_data {
 	int duedate;
 	float length;
-	int capacity;
+	Integer capacity;
 	
 	public Edge_data(int d, float l, int c) {
 		duedate = d;
 		length = l;
 		capacity = c;
 	}
-}
-
-class Path_data {
-	int origin;
-	ArrayList<Integer> following;
-	int nb_following;
-	int max_rate;
-
-	public Path_data(int o, int nb_f, int rate, ArrayList<Integer> fol) {
-		origin = o;
-		nb_following = nb_f;
-		max_rate = rate;
-		following = fol;
-	}
-	
 }
 
 public data() {
@@ -74,5 +59,15 @@ public void add_edge(int origin, int destination, int duedate, float length, int
 	}
 }
 
+public HashMap<Integer,HashMap<Integer,Integer>> getEdgesCapas() {
+	HashMap<Integer,HashMap<Integer,Integer>> result = new HashMap<Integer,HashMap<Integer,Integer>>();
+	for(int orig : edges.keySet()) {
+		HashMap<Integer,Integer> currHM = new HashMap<Integer,Integer>();
+		for(int dest : edges.get(orig).keySet()) {
+			currHM.put((Integer) dest, edges.get(orig).get(dest).capacity);
+		}
+		result.put(orig, currHM);
+	}
+	return result;
 }
-
+}
