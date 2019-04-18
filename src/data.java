@@ -12,10 +12,10 @@ private HashMap<Integer, HashMap<Integer, Edge_data>> edges;  // origin, hashmap
 
 public class Edge_data {
 	int duedate;
-	float length;
+	int length;
 	Integer capacity;
 	
-	public Edge_data(int d, float l, int c) {
+	public Edge_data(int d, int l, int c) {
 		duedate = d;
 		length = l;
 		capacity = c;
@@ -45,10 +45,10 @@ public void set_safe_node(int id) {
 }
 
 public void add_evac_path(int origin, int pop, int rate, int k, ArrayList<Integer> follow) { // note that aList must be created by caller
-	this.evac_paths.add(new Path_data(origin, k, rate, follow));
+	this.evac_paths.add(new Path_data(origin, pop, k, rate, follow));
 }
 
-public void add_edge(int origin, int destination, int duedate, float length, int capacity) {
+public void add_edge(int origin, int destination, int duedate, int length, int capacity) {
 	if(edges.containsKey(origin)) {
 		edges.get(origin).put(destination, new Edge_data(duedate, length, capacity));
 	}
@@ -70,4 +70,46 @@ public HashMap<Integer,HashMap<Integer,Integer>> getEdgesCapas() {
 	}
 	return result;
 }
+
+public void read_data()
+{
+    System.out.println("---------- READ DATA ----------");
+    System.out.println("num_evac => " + num_evac);
+    System.out.println("safe node => " + safe_node);
+    System.out.println("---------- EVACUATION PATHS ----------");
+
+    for(Path_data p : evac_paths)
+    {
+		System.out.println("origin => "+p.origin);
+		System.out.println("population => "+p.population);
+		System.out.println("max_rate => "+p.max_rate);
+        System.out.println("nb_following => "+p.nb_following);
+		System.out.print("following => ");
+		for(Integer x : p.following)
+		{
+			System.out.print(" "+x+" ");
+		}
+		System.out.println("");
+		System.out.println("-------------------------------------------------");
+
+    }
+
+	System.out.println("---------- NODE AND EDGES ----------");
+	System.out.println("nb node => " + nb_node);
+    System.out.println("nb edge => " + nb_edge);
+    System.out.println("--------------ARCS----------------");
+
+    edges.forEach((k,v) -> {
+        System.out.println("origin =>"+k);
+        v.forEach((x,y) -> {
+            System.out.println("destination => "+x);
+            System.out.println("duedate => " +y.duedate);
+            System.out.println("length => " +y.length);
+			System.out.println("capacity => " +y.capacity);
+			System.out.println("------------------------------");
+        });
+    });
+    
+}
+
 }
