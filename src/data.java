@@ -71,6 +71,19 @@ public HashMap<Integer,HashMap<Integer,Integer>> getEdgesCapas() {
 	return result;
 }
 
+public int getEdgeLength(int origNode, int DestNode) {
+	return edges.get(origNode).get(DestNode).length;
+}
+
+public int getEdgeDueDate(int origNode, int DestNode) {
+	return edges.get(origNode).get(DestNode).duedate;
+}
+
+public int getEdgeCapa(int origNode, int DestNode) {
+	return edges.get(origNode).get(DestNode).capacity;
+}
+
+
 public void read_data()
 {
     System.out.println("---------- READ DATA ----------");

@@ -1,0 +1,48 @@
+Algorithme du checker :
+
+L'algorithme fonctionne en 2 temps. On va d'abord simuler l'évacuation en calculant, pour la solution proposée, la capacité restante sur chaque arc, à chaque instant. 
+En ce faisant, on vérifie le respect des contraintes de capacité de chaque arc (ou ressource) et la réalisation de la fonction objectif. 
+Dans un second temps, en utilisant la matrice remplie précédemment, on vérifie le respect des due date de chaque arc, en vérifiant que chaque arc ne soit plus utilisé après sa due date.
+
+edgesData : matrice de taille (valeur de la fonction objectif)*(nombre d'arcs)
+// edgeData[t][e] représente la capacité restante pour l'arc (/la ressource) e au temps t
+
+//Init : (O(T*E))
+Pour chaque case de edgesData mettre la capacité initiale de l'arc concerné
+
+//Vérification de la contraine de capacité : (O(N*P*L))
+Pour chaque sommet s à évacuer :
+	tInit <- début de l'évacuation de s
+	Tant qu'il reste des gens à évacuer en s :
+		t <- tInit
+		Pour chaque arc e du chemin d'évacuation de s :
+			si t > valeur de la fonction objectif alors solution invalide finsi (1)
+			edgesData[t][e] -= nombre de personne du paquet évacué
+			si edgesData[t][e] < 0 alors Solution invalide finsi (2)
+			t += durée de parcours de e
+		finPour
+		tInit++
+	fintantque
+finpour
+		
+//Vérification de la contrainte des Due Date : (O(E*T))
+Pour chaque arc e du graphe :
+	pour i allant de (date d'expiration de e) à (valeur de la fonction objectif) 
+		si edgesData[i][e] != capacité de e
+			alors solution invalide (3)
+		finsi
+	finpour
+finpour
+
+
+(1) => La solution ne permet pas d'évacuer tout le monde en respectant la valeur voulue de la fonction objectif
+(2) => La solution ne respecte pas les contraintes de capacité de chaque arc (ou ressource)
+(3) => La solution ne respecte pas les due date : des gens entrent encore sur un arc après sa date d'expiration
+
+NB : Abréviations : 
+T = nombre d'unités de temps de la fonction objectif
+E = nombre d'arcs dans le graphe des routes d'évacuations
+L = longueur maximale d'un chemin d'évacuation ; à noter que dans le pire des cas L = E mais pas forcément pour toutes les instances
+N = nombre de sommets à évacuer
+P = nombre maximal de paquets de personnes devant quitter un sommet ; dans le cas général P(s) = ( (#personnes en s à t = 0) / (flot max d'évacuation de s) )
+Pour rester dans le cas général on peut poser (dans le pire des cas) : P = nombre max de personnes sur un sommet (mais c'est une approximation très défavorable)
