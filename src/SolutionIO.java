@@ -3,6 +3,7 @@ import java.io.FileReader;
 import java.io.File;
 import java.io.*;
 import java.util.HashMap;
+import java.io.FileWriter;
 
 public class SolutionIO {
 
@@ -60,10 +61,11 @@ public Solution read(String File_Name) {
 			else if (instance==5)
 			{
 				Sol_Created.method = line;
+				instance++;
 			}
 			else 
 			{
-				Sol_Created.other = Sol_Created.other + line;
+				Sol_Created.other = Sol_Created.other+ line +"\n";
 			}
 		}
 	} catch (IOException e)
@@ -76,7 +78,40 @@ public Solution read(String File_Name) {
 
 
 public int write(Solution sol, String File_Name) {
-	return 0;
-}
+	FileWriter fWrit;
+	File filew = new File(File_Name);
+	try{
+	filew.delete();
+	fWrit = new FileWriter(filew, true);
+	fWrit.write(sol.instanceName+"\n");
+	fWrit.write(sol.evacNodesNB+"\n");
+	for(int origin : sol.evacNodesList.keySet())
+	{
+		fWrit.write(origin+" "+sol.evacNodesList.get(origin).beginDate+" "+sol.evacNodesList.get(origin).evacRate+"\n");
+	}
+	if (sol.nature)
+	{
+		fWrit.write("valid \n");
+	}
+	else
+	{
+		fWrit.write("invalid \n");
+	}
+	fWrit.write(sol.objectiveValue+"\n");
+	fWrit.write(sol.computeTime+"\n");
+	fWrit.write(sol.method+"\n");
+	fWrit.write(sol.other);
+	fWrit.flush();
+	fWrit.close();
 
+	}
+	catch (IOException e){
+		System.err.println("Create FileWRITER FAIL");
+		e.printStackTrace();
+	}
+
+	return 0;
+
+
+}
 }

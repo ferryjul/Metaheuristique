@@ -26,6 +26,14 @@ public static void main(String[] args) {
     TD_sol.other = "Olivier - on connait une meilleure solution";
     */
     TD_sol = solIO.read("solutiontest.txt");
+    int test = solIO.write(TD_sol, "testwriteIo.txt");
+    if (test==0)
+    {
+        System.out.println("Fichier solution créé \n");
+    }
+    else{
+        System.out.println("[ERROR] Fichier solution fail \n");
+    }
     Checker TD_checker = new Checker();
     TD_checker.check(TD_data, TD_sol);
     System.out.println("Valeur d'une borne inférieure : " + computeInfSup.computeInf(TD_data));
