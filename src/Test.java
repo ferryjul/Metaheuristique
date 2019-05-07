@@ -7,12 +7,13 @@ public static void main(String[] args) {
 
     /* On crée l'exemple du TD */
     dataReader reader = new dataReader();
+    SolutionIO solIO = new SolutionIO();
     data TD_data = new data();
     TD_data = reader.Convert_File_In_Data("donneetest.full");
     TD_data.read_data();
     /* On crée la solution du TD */
     Solution TD_sol = new Solution();
-    TD_sol.instanceName="example TD";
+    /*TD_sol.instanceName="example TD";
     TD_sol.evacNodesNB=3;
     HashMap<Integer,EvacNodeData> hm = new HashMap<Integer,EvacNodeData>();
     hm.put(1,new EvacNodeData(8,3)); //(9,3)
@@ -23,6 +24,8 @@ public static void main(String[] args) {
     TD_sol.objectiveValue = 37;
     TD_sol.method = "resolu à la main";
     TD_sol.other = "Olivier - on connait une meilleure solution";
+    */
+    TD_sol = solIO.read("solutiontest.txt");
     Checker TD_checker = new Checker();
     TD_checker.check(TD_data, TD_sol);
     //TD_checker.printState();
