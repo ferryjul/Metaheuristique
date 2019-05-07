@@ -32,10 +32,10 @@ public static void main(String[] args) {
     System.out.println("Valeur d'une borne supérieure : " + computeInfSup.computeSup(TD_data));
     Solution infSol = computeInfSup.computeInfSolution(TD_data);
     Solution supSol = computeInfSup.computeSupSolution(TD_data);
-    System.out.println("----- Test de la solution de la borne inf -----");
+    System.out.println("\n----- Test de la solution de la borne inf ----- ");
     Checker TD_checker1 = new Checker();
     TD_checker1.check(TD_data, infSol);
-    System.out.println("----- Test de la solution de la borne sup -----");
+    System.out.println("\n----- Test de la solution de la borne sup ----- ");
     Checker TD_checker2 = new Checker();
     TD_checker2.check(TD_data, supSol);
     //TD_checker.printState();

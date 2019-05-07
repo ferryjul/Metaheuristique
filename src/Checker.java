@@ -17,7 +17,7 @@ public class Checker {
         // Capacity contraint check
         for (int evacNode : s.evacNodesList.keySet()) { // Iterates on nodes to be evacuated
             if (valid) {
-                System.out.println("[Evacuation of node " + evacNode + "]");
+                System.out.println("[Evacuation of node " + evacNode + " (at time " + s.evacNodesList.get(evacNode).beginDate + ")]");
                 int startDate = s.evacNodesList.get(evacNode).beginDate;
                 int usedCapa = s.evacNodesList.get(evacNode).evacRate;
                 int currStart = startDate;
@@ -29,6 +29,7 @@ public class Checker {
                 }
                 int currNode;
                 int peopleNotEvacuated = evacPath.population;
+                int currTime = -1;
                 while (peopleNotEvacuated != 0 && valid) { // we compute all people packets travel on this path here
                     if (usedCapa > peopleNotEvacuated) { // last people packet
                         usedCapa = peopleNotEvacuated;
@@ -36,7 +37,7 @@ public class Checker {
                     } else {
                         peopleNotEvacuated -= usedCapa;
                     }
-                    int currTime = currStart; // next packet departure !
+                    currTime = currStart; // next packet departure !
                     System.out.println(" Still to evacuate : " + peopleNotEvacuated);
                     currNode = evacNode;
                     for (int follow : evacPath.following) { // we compute the impact of the current packet on every edge
@@ -64,8 +65,9 @@ public class Checker {
                             }
                         }
                     }
-                    currStart++; // go to next people packet departur
+                    currStart++; // go to next people packet departure
                 }
+                System.out.println(" Evac ending at time " + currTime);
             }
         }
         if (valid) {
