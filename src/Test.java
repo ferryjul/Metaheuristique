@@ -39,7 +39,23 @@ public static void main(String[] args) {
     System.out.println("Valeur d'une borne inférieure : " + computeInfSup.computeInf(TD_data));
     System.out.println("Valeur d'une borne supérieure : " + computeInfSup.computeSup(TD_data));
     Solution infSol = computeInfSup.computeInfSolution(TD_data);
+    int test2 = solIO.write(infSol, "testwriteIoInf.txt");
+    if (test2==0)
+    {
+        System.out.println("Fichier solution inf créé \n");
+    }
+    else{
+        System.out.println("[ERROR] Fichier solution inf fail \n");
+    }
     Solution supSol = computeInfSup.computeSupSolution(TD_data);
+    int test3 = solIO.write(supSol, "testwriteIoSup.txt");
+    if (test3==0)
+    {
+        System.out.println("Fichier solution sup créé \n");
+    }
+    else{
+        System.out.println("[ERROR] Fichier solution sup fail \n");
+    }
     System.out.println("\n----- Test de la solution de la borne inf ----- ");
     Checker TD_checker1 = new Checker();
     TD_checker1.check(TD_data, infSol);
