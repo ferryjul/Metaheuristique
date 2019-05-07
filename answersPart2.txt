@@ -1,0 +1,5 @@
+C'est un problème de minimisation ; la borne inférieure est donc une valeur de la fonction objectif telle que la "vraie" valeur ne lui sera jamais inférieure (i.e. la solution réalisable ne sera jamais meilleure).
+La borne inférieure que nous avons retenue est la suivante : maximum des temps d'évacuation des tronçons. (i.e. on considère que les secteurs peuvent être évacués simultanément, le temps total est donc le temps de l'évacuation la plus longue, c'est le meilleur des cas).
+
+Une borne supérieure est une valeur de la fonction objectif telle que la valeur optimale de la fonction objectif ne lui sera pas supérieure (i.e. la solution idéale sera forcément meilleure).
+La somme des temps d'évacuation 

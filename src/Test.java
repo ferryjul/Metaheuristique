@@ -28,6 +28,8 @@ public static void main(String[] args) {
     TD_sol = solIO.read("solutiontest.txt");
     Checker TD_checker = new Checker();
     TD_checker.check(TD_data, TD_sol);
+    System.out.println("Valeur d'une borne inférieure : " + computeInfSup.computeInf(TD_data));
+    System.out.println("Valeur d'une borne supérieure : " + computeInfSup.computeSup(TD_data));
     //TD_checker.printState();
     }
 

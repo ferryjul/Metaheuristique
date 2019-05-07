@@ -8,7 +8,7 @@ private int safe_node;
 private int nb_edge;
 private int nb_node;
 public ArrayList<Path_data> evac_paths;
-private HashMap<Integer, HashMap<Integer, Edge_data>> edges;  // origin, hashmap<destination, edge_data>
+private HashMap<Integer, HashMap<Integer, Edge_data>> edges;  // origin, hashmap<destination, edge_data> => O(1) access
 
 public class Edge_data {
 	int duedate;

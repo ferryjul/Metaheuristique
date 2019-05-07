@@ -101,7 +101,7 @@ public class Checker {
 
             if (valid) {
                 System.out.println("Due Date contraint validity passed");
-                System.out.println("Solution is VALID");
+                System.out.println("Solution is VALID with value = " + s.objectiveValue + " unit times.");
             } else {
                 System.out.println("Due Date contraint validity failed");
                 System.out.println("Solution is NOT VALID");
