@@ -67,7 +67,9 @@ public class Checker {
                     }
                     currStart++; // go to next people packet departure
                 }
-                System.out.println(" Evac ending at time " + currTime);
+		if(valid) {
+                	System.out.println(" Evac ending at time " + currTime);
+		}
             }
         }
         if (valid) {
