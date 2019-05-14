@@ -11,7 +11,7 @@ public class LocalSearch {
             if(startDate > 0) {
                 Solution bestSol = new Solution(initSol);
                 bestSol.evacNodesList.put(evacNode, new EvacNodeData(rate, startDate-1));
-                System.out.println("Node " + evacNode + " will evacuate at time " + startDate + " instead of " + (startDate +1));
+                System.out.println("Node " + evacNode + " will evacuate at time " + (startDate-5) + " instead of " + (startDate ));
                 neighbours.add(bestSol);
             }
         }
@@ -30,6 +30,7 @@ public class LocalSearch {
                 Checker ch = new Checker();
                 nb++;
                 int val = ch.check(d, s).endingEvacTime;
+                s.objectiveValue = val;
                 if((val > 0) && (val <= bestValue)) {
                     foundBest = true;
                     System.out.println("Best solution found !");
@@ -49,21 +50,40 @@ public class LocalSearch {
         for(int aNode : solAnalysis.problematicNodes) {
             Solution bestSol = new Solution(sol);
             System.out.println("pb at node " + aNode + " (exceedent flow = " + solAnalysis.exceedentFlow + ")");
-            bestSol.evacNodesList.put(aNode, new EvacNodeData(sol.evacNodesList.get(aNode).evacRate - solAnalysis.exceedentFlow, sol.evacNodesList.get(aNode).beginDate));
-            System.out.println("Node " + aNode + " will now evacuate at rate " + bestSol.evacNodesList.get(aNode).evacRate + " instead of " + sol.evacNodesList.get(aNode).evacRate);
-            r.add(bestSol);
+            if(sol.evacNodesList.get(aNode).evacRate - solAnalysis.exceedentFlow > 0) {
+                bestSol.evacNodesList.put(aNode, new EvacNodeData(sol.evacNodesList.get(aNode).evacRate - solAnalysis.exceedentFlow, sol.evacNodesList.get(aNode).beginDate));
+                System.out.println("Node " + aNode + " will now evacuate at rate " + bestSol.evacNodesList.get(aNode).evacRate + " instead of " + sol.evacNodesList.get(aNode).evacRate);
+                r.add(bestSol);
+            }
         }
+        int total = solAnalysis.exceedentFlow;
+        int average = (total/(solAnalysis.problematicNodes.size()));
+        int rest = total%(solAnalysis.problematicNodes.size());
+        // We also compute a "fair" solution
+        Boolean first = true;
+        Solution bestSolAv = new Solution(sol);
+        for(int aNode : solAnalysis.problematicNodes) {
+            if(first) { // choix arbitraire : si nbre non multiple on donne plus au premier noeud à évacuer
+                first = false;
+                bestSolAv.evacNodesList.put(aNode, new EvacNodeData(sol.evacNodesList.get(aNode).evacRate - average - rest, sol.evacNodesList.get(aNode).beginDate));
+            }
+            else {
+                bestSolAv.evacNodesList.put(aNode, new EvacNodeData(sol.evacNodesList.get(aNode).evacRate - average, sol.evacNodesList.get(aNode).beginDate));
+            }
+        }
+        r.add(bestSolAv);
         return r;
     }
 
     public void localSearch(data d, Solution s) {
+        int test = (new Checker()).check(d, s).endingEvacTime;
         Solution baseSol = findBest(d,s);
         baseSol.objectiveValue = (new Checker()).check(d, baseSol).endingEvacTime;
         int bestValue = baseSol.objectiveValue;
         Solution bestSol = baseSol;
         int nb = 0;
         Boolean foundBest = true;
-        System.out.println("\n\n\n Will try to improve solution at cost " + bestValue + ")");
+        System.out.println("\n\n\n Will try to improve solution at cost " + bestValue + " (former cost was " + test + "))");
         while(foundBest) {
             foundBest = false;
             for(Solution s1 : computeNeighbours(d, bestSol)) {
@@ -81,9 +101,8 @@ public class LocalSearch {
                     }
             }
         }
-        System.out.println("Explored " + nb + " rate diminutions.");
-        System.out.println("Best solution found at cost " + bestValue + "(explored  " + nb + " solutions)");
         (new Checker()).check(d, bestSol);
+        System.out.println("Explored " + nb + " rate diminutions.");
+        System.out.println("Best solution found at cost " + bestValue + "(explored  " + nb + " solutions)");       
     }
-
 }

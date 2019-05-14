@@ -7,7 +7,7 @@ private int num_evac;
 private int safe_node;
 private int nb_edge;
 private int nb_node;
-public ArrayList<Path_data> evac_paths;
+public HashMap<Integer, Path_data> evac_paths;
 private HashMap<Integer, HashMap<Integer, Edge_data>> edges;  // origin, hashmap<destination, edge_data> => O(1) access
 
 public class Edge_data {
@@ -24,7 +24,7 @@ public class Edge_data {
 
 public data() {
 	// init the data structures
-	evac_paths = new ArrayList<Path_data>();
+	evac_paths = new HashMap<Integer, Path_data>();
 	edges = new HashMap<Integer, HashMap<Integer, Edge_data>>();
 }
 
@@ -45,10 +45,10 @@ public void set_safe_node(int id) {
 }
 
 public void add_evac_path(int origin, int pop, int rate, int k, ArrayList<Integer> follow) { // note that aList must be created by caller
-	this.evac_paths.add(new Path_data(origin, pop, k, rate, follow));
+	this.evac_paths.put(origin, new Path_data(origin, pop, k, rate, follow));
 }
 
-public void add_edge(int origin, int destination, int duedate, int length, int capacity) {
+public void add_edge(int origin, int destination, int duedate, int length, int capacity) { // version qui prend en compte le fait que les arcs ne soient pas dirigés
 	if(edges.containsKey(origin)) {
 		edges.get(origin).put(destination, new Edge_data(duedate, length, capacity));
 	}
@@ -56,6 +56,14 @@ public void add_edge(int origin, int destination, int duedate, int length, int c
 		HashMap<Integer,Edge_data> hm = new HashMap<Integer,Edge_data>();
 		hm.put(destination, new Edge_data(duedate, length, capacity));
 		edges.put(origin, hm);
+	}
+	if(edges.containsKey(destination)) { // ajout du symétrique
+		edges.get(destination).put(origin, new Edge_data(duedate, length, capacity));
+	}
+	else {
+		HashMap<Integer,Edge_data> hm = new HashMap<Integer,Edge_data>();
+		hm.put(origin, new Edge_data(duedate, length, capacity));
+		edges.put(destination, hm);
 	}
 }
 
@@ -72,15 +80,33 @@ public HashMap<Integer,HashMap<Integer,Integer>> getEdgesCapas() {
 }
 
 public int getEdgeLength(int origNode, int DestNode) {
-	return edges.get(origNode).get(DestNode).length;
+	int result;
+	try { // Car les arcs ne sont pas dirigés
+		result = edges.get(origNode).get(DestNode).length;
+	} catch(Exception e) {
+		result =  edges.get(DestNode).get(origNode).length;
+	}
+	return result;
 }
 
 public int getEdgeDueDate(int origNode, int DestNode) {
-	return edges.get(origNode).get(DestNode).duedate;
+	int result;
+	try { // Car les arcs ne sont pas dirigés
+		result = edges.get(origNode).get(DestNode).duedate;
+	} catch(Exception e) {
+		result =  edges.get(DestNode).get(origNode).duedate;
+	}
+	return result;
 }
 
 public int getEdgeCapa(int origNode, int DestNode) {
-	return edges.get(origNode).get(DestNode).capacity;
+	int result;
+	try { // Car les arcs ne sont pas dirigés
+		result = edges.get(origNode).get(DestNode).capacity;
+	} catch(Exception e) {
+		result =  edges.get(DestNode).get(origNode).capacity;
+	}
+	return result;
 }
 
 
@@ -91,7 +117,7 @@ public void read_data()
     System.out.println("safe node => " + safe_node);
     System.out.println("---------- EVACUATION PATHS ----------");
 
-    for(Path_data p : evac_paths)
+    for(Path_data p : evac_paths.values())
     {
 		System.out.println("origin => "+p.origin);
 		System.out.println("population => "+p.population);

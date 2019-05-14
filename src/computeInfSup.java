@@ -22,7 +22,7 @@ public class computeInfSup {
     }
     private static ArrayList<Integer> computeEvacTimes(data inData){
         ArrayList<Integer> sol = new ArrayList<Integer>();
-        for(Path_data aPath : inData.evac_paths) { // iterates over all evac paths
+        for(Path_data aPath : inData.evac_paths.values()) { // iterates over all evac paths
             int minTime = aPath.population / aPath.max_rate;
             if((aPath.population % aPath.max_rate) != 0) {
                 minTime++; // Pour "faire passer" le dernier paquet
@@ -31,6 +31,7 @@ public class computeInfSup {
             // we compute the sum of the travel times of each edge on the path
             int currNode = aPath.origin;
             for(int nextNode : aPath.following) {
+                //System.out.println("edge from " + currNode + " to " + nextNode + " !");
                 travel_time+=inData.getEdgeLength(currNode, nextNode);
                 currNode = nextNode;
             }
@@ -50,7 +51,7 @@ public class computeInfSup {
         sol.objectiveValue = computeInf(inData);
         sol.evacNodesNB = inData.evac_paths.size();
         sol.evacNodesList = new HashMap<Integer,EvacNodeData>();
-        for(Path_data evacPath : inData.evac_paths) {
+        for(Path_data evacPath : inData.evac_paths.values()) {
             int evacNode = evacPath.origin;
             int rate = evacPath.max_rate;
             int beginTime = 0; // all evacuation tasks begin at the same time (time 0)
@@ -73,9 +74,10 @@ public class computeInfSup {
         sol.evacNodesNB = inData.evac_paths.size();
         sol.evacNodesList = new HashMap<Integer,EvacNodeData>();
         int totalTime = 0;
-        for(Path_data evacPath : inData.evac_paths) {
+        for(Path_data evacPath : inData.evac_paths.values()) {
             int evacNode = evacPath.origin;
-            int rate = evacPath.max_rate;
+
+            //int rate = evacPath.max_rate; // sometimes impossible, so we compute it manually !!
 
             int evacTime = evacPath.population / evacPath.max_rate;
             if((evacPath.population % evacPath.max_rate) != 0) {
@@ -84,15 +86,19 @@ public class computeInfSup {
             int travel_time = 0;
             // we compute the sum of the travel times of each edge on the path
             int currNode = evacPath.origin;
+            int minCapa = Integer.MAX_VALUE;
             for(int nextNode : evacPath.following) {
                 travel_time+=inData.getEdgeLength(currNode, nextNode);
+                if(inData.getEdgeCapa(currNode, nextNode) < minCapa) {
+                    minCapa = inData.getEdgeCapa(currNode, nextNode);
+                }
                 currNode = nextNode;
             }
             evacTime+=travel_time; // durée de trajet des paquets jusqu'au point sûr
 
             int beginTime = totalTime; 
             totalTime+=evacTime; // next evacuation will begin while this one is totally finished
-            sol.evacNodesList.put(evacNode, new EvacNodeData(rate, beginTime));
+            sol.evacNodesList.put(evacNode, new EvacNodeData(minCapa, beginTime));
         }
         Long endTime = java.lang.System.currentTimeMillis();
         sol.computeTime = ((Long)(endTime - startTime)).intValue();
