@@ -63,6 +63,7 @@ public static void main(String[] args) {
     Checker TD_checker2 = new Checker();
     TD_checker2.check(TD_data, supSol);
     //TD_checker.printState();
+    (new LocalSearch()).localSearch(TD_data, supSol);
     }
 
 }

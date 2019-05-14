@@ -6,8 +6,13 @@ public class Checker {
     private ArrayList<HashMap<Integer, HashMap<Integer, Integer>>> edgesData; // for each time unit, for each edge (for
                                                                               // each origin, each dest), free capacity
     Boolean valid = true;
+    int maxTime = 0;
+    int nodePB = 0;
+    int valuePB = 0;
+    int origPB = 0;
+    int destPB = 0;
 
-    public void check(data d, Solution s) {
+    public CheckerReturn check(data d, Solution s) {
         System.out.println("------------------------------ Beginning solution check ------------------------------");
         // Init data structure
         edgesData = new ArrayList<HashMap<Integer, HashMap<Integer, Integer>>>();
@@ -57,6 +62,10 @@ public class Checker {
                                     System.out.println("capacity constraint violated on edge (" + currNode + ", "
                                             + follow + ") (flow of " + usedCapa + " coming from " + evacNode
                                             + " at time " + currTime + ")");
+                                            valuePB = (-1) * edgesData.get(currTime).get(currNode).get(follow);
+                                            nodePB = evacNode;
+                                            origPB = currNode;
+                                            destPB = follow;
                                 }
                                 currTime += d.getEdgeLength(currNode, follow);
                                 currNode = follow;
@@ -68,7 +77,10 @@ public class Checker {
                     currStart++; // go to next people packet departure
                 }
 		if(valid) {
-                	System.out.println(" Evac ending at time " + currTime);
+                    System.out.println(" Evac ending at time " + currTime);
+                    if(currTime > maxTime) {
+                        maxTime = currTime;
+                    }
 		}
             }
         }
@@ -115,9 +127,34 @@ public class Checker {
             System.out.println("Capacity contraint validity failed");
             System.out.println("Solution is NOT VALID");
         }
-
-        System.out.println("------------------------------ Checker ending ------------------------------");
-
+        if(valid) {
+            maxTime++; // Pour prendre en compte l'instant t = 0;
+            System.out.println("Total evac time = " + maxTime);
+            System.out.println("------------------------------ Checker ending ------------------------------");
+            CheckerReturn r = new CheckerReturn();
+            r.endingEvacTime = maxTime;
+            return r; //-1 is not valid
+        } else {
+            System.out.println("------------------------------ Checker ending ------------------------------");
+            CheckerReturn r = new CheckerReturn(); // we fill in useful info for solution improvement
+            r.endingEvacTime = -1;
+            r.problematicNode = nodePB;
+            r.exceedentFlow = valuePB;
+            r.problematicNodes = new ArrayList<Integer>();
+            for (int evacNode : s.evacNodesList.keySet()) {
+                int a = evacNode;
+                int b = -1;
+                //System.out.println(evacNode + " yeye");
+                for(int n : d.evac_paths.get(evacNode-1).following) {
+                    b = n;
+                    if((a == origPB) && (b == destPB)) {
+                        r.problematicNodes.add(evacNode);
+                    }
+                    a = b;
+                }      
+            }        
+            return r;
+        }
     }
 
     public void printState() {

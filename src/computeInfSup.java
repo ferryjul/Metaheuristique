@@ -53,7 +53,7 @@ public class computeInfSup {
         for(Path_data evacPath : inData.evac_paths) {
             int evacNode = evacPath.origin;
             int rate = evacPath.max_rate;
-            int beginTime = 0; // all evacuation tasks begin at the same time (time 0) 
+            int beginTime = 0; // all evacuation tasks begin at the same time (time 0)
             sol.evacNodesList.put(evacNode, new EvacNodeData(rate, beginTime));
         }
         Long endTime = java.lang.System.currentTimeMillis();
