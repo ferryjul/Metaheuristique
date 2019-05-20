@@ -104,6 +104,7 @@ public int getEdgeCapa(int origNode, int DestNode) {
 	try { // Car les arcs ne sont pas dirigés
 		result = edges.get(origNode).get(DestNode).capacity;
 	} catch(Exception e) {
+		System.out.println(origNode + "," + DestNode);
 		result =  edges.get(DestNode).get(origNode).capacity;
 	}
 	return result;

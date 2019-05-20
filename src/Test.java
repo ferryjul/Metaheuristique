@@ -3,7 +3,7 @@ import java.util.HashMap;
 
 public class Test {
 
-static Boolean debug = true;
+static Boolean debug = false;
 public static void main(String[] args) {
 
     if(debug) { // Simple example for debugging
@@ -68,7 +68,8 @@ public static void main(String[] args) {
         (new LocalSearch()).localSearch(TD_data, supSol);
     }
     else {
-        String fileData = "../InstancesInt/sparse_10_30_3_10_I.full";
+        String fileData = "../InstancesInt/sparse_10_30_3_1_I.full";
+        //String fileData = "../InstancesInt/dense_10_30_3_5_I.full";
         /* On crée l'exemple du TD */
         dataReader reader = new dataReader();
         SolutionIO solIO = new SolutionIO();

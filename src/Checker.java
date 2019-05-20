@@ -8,12 +8,20 @@ public class Checker {
     Boolean valid = true;
     int maxTime = 0;
     int nodePB = 0;
-    int valuePB = 0;
     int origPB = 0;
     int destPB = 0;
-    int debugState = 1; // 0 = no display ; 1 = minimal display ; 2 = full display ; 3 = detailed display
+    int debugState = 0; // 0 = no display ; 1 = minimal display ; 2 = full display ; 3 = detailed display
     Boolean checkDueDate = false;
+    Boolean computeInfos;
+    Boolean capacityViolation = false;
 
+    public Checker() {
+        computeInfos = false;
+    }
+
+    public Checker(boolean com) {
+        computeInfos = true;
+    }
     public CheckerReturn check(data d, Solution s) {
         if(debugState >= 1) { 
             System.out.println("------------------------------ Beginning solution check ------------------------------");
@@ -75,12 +83,13 @@ public class Checker {
                                     if(debugState >= 1) { 
                                         System.out.println("capacity constraint violated on edge (" + currNode + ", "
                                                 + follow + ") (flow of " + usedCapa + " coming from " + evacNode
-                                                + " at time " + currTime + ")");
+                                                + " at time " + currTime + " resulting in available flow = " + edgesData.get(currTime).get(currNode).get(follow) + ")");
                                     }
-                                            valuePB = (-1) * edgesData.get(currTime).get(currNode).get(follow);
+                                            //valuePB = (-1) * edgesData.get(currTime).get(currNode).get(follow);
                                             nodePB = evacNode;
                                             origPB = currNode;
                                             destPB = follow;
+                                            capacityViolation = true;
                                 }
                                 currTime += d.getEdgeLength(currNode, follow);
                                 currNode = follow;
@@ -179,20 +188,25 @@ public class Checker {
             CheckerReturn r = new CheckerReturn(); // we fill in useful info for solution improvement
             r.endingEvacTime = -1;
             r.problematicNode = nodePB;
-            r.exceedentFlow = valuePB;
+            int valuePB = 0;          
             r.problematicNodes = new ArrayList<Integer>();
-            for (int evacNode : s.evacNodesList.keySet()) {
-                int a = evacNode;
-                int b = -1;
-                //System.out.println(evacNode + " yeye");
-                for(int n : d.evac_paths.get(evacNode).following) { // because evac_paths is not an HashMap (should change that !)
-                    b = n;
-                    if((a == origPB) && (b == destPB)) {
-                        r.problematicNodes.add(evacNode);
-                    }
-                    a = b;
-                }      
-            }   
+            if(computeInfos && capacityViolation) { // else we avoid all this computation
+                for (int evacNode : s.evacNodesList.keySet()) {
+                    int a = evacNode;
+                    int b = -1;
+                    //System.out.println(evacNode + " yeye");
+                    for(int n : d.evac_paths.get(evacNode).following) { // because evac_paths is not an HashMap (should change that !)
+                        b = n;
+                        if((a == origPB) && (b == destPB)) {
+                            r.problematicNodes.add(evacNode);
+                            valuePB+=s.evacNodesList.get(evacNode).evacRate;
+                        }
+                        a = b;
+                    }      
+                }                  
+                r.exceedentFlow = (valuePB - d.getEdgeCapa(origPB, destPB));
+            }
+            
             if(debugState == 3) {    
                 printState();
             }
