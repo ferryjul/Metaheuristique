@@ -8,14 +8,16 @@ public class LocalSearch {
     int initVal; 
 
     private ArrayList<Solution> computeNeighbours(data d, Solution initSol) {
+        //System.out.println("Computing Neighbours...");
         ArrayList<Solution> neighbours = new ArrayList<Solution>();
         for(int evacNode : initSol.evacNodesList.keySet()) {
             int startDate = initSol.evacNodesList.get(evacNode).beginDate;
             int rate = initSol.evacNodesList.get(evacNode).evacRate;
+            //System.out.println("start date = " + startDate + " ; stepValue = " + stepValue);
             if(startDate >= stepValue) {
                 Solution bestSol = new Solution(initSol);
                 bestSol.evacNodesList.put(evacNode, new EvacNodeData(rate, startDate-stepValue));
-                //System.out.println("Node " + evacNode + " will evacuate at time " + (startDate-stepValue) + " instead of " + (startDate ));
+                //System.out.println("Node " + evacNode + " will evacuate at time " + (startDate-stepValue) + " instead of " + (startDate));
                 neighbours.add(bestSol);
             }
         }
@@ -101,33 +103,80 @@ public class LocalSearch {
         Boolean foundBest = true;
         System.out.println("[MAIN] Will try to improve solution at cost " + bestValue + " (former cost was " + test + "))");
         ArrayList<Solution> explSolsList = new ArrayList<Solution>();
-        while(foundBest) {
+        int max_iterations = 5;
+        int i = max_iterations;
+        while(foundBest || i > 0) {
+            ArrayList<Solution> explSolsListBis = new ArrayList<Solution>();
             foundBest = false;
-            for(Solution s1 : computeNeighbours(d, bestSol)) { // boucle partant de la solution initiale dans tous les sens
-                ArrayList<Solution> solList = modifyRates(d, s1);
-                for(Solution sol : solList) {
-                    sol.objectiveValue = initVal*4; // Pour ne pas que le checker fail à cause de ça (car on a sûrement allongé la durée de l'évac en diminuant le débit)
-                    sol.objectiveValue = (new Checker()).check(d,sol).endingEvacTime;
-                    if(sol.objectiveValue != -1) {
-                        Solution compactedNewSol = findBest(d, sol);
-                        int val = (new Checker()).check(d, compactedNewSol).endingEvacTime;
-                        //explSolsList.add(compactedNewSol);
-                        if((val > 0) && (val <= bestValue)) {
-                            foundBest = true;
-                            bestSol = compactedNewSol;
-                            bestValue = val;
-                            nb++;
+            if(i == max_iterations) {               
+                for(Solution s1 : computeNeighbours(d, bestSol)) { // boucle partant de la solution initiale dans tous les sens
+                    ArrayList<Solution> solList = modifyRates(d, s1);
+                    for(Solution sol : solList) {
+                        sol.objectiveValue = initVal*4; // Pour ne pas que le checker fail à cause de ça (car on a sûrement allongé la durée de l'évac en diminuant le débit)
+                        sol.objectiveValue = (new Checker()).check(d,sol).endingEvacTime;
+                        if(sol.objectiveValue != -1) {
+                            Solution compactedNewSol = findBest(d, sol);
+                            int val = (new Checker()).check(d, compactedNewSol).endingEvacTime;
+                            //explSolsList.add(compactedNewSol);
+                            if((val > 0) && (val <= bestValue)) {
+                                foundBest = true;
+                                bestSol = compactedNewSol;
+                                bestValue = val;
+                                nb++;
+                                i = max_iterations+1;
+                            }
+                            if(val > 0) {
+                                explSolsListBis.add(compactedNewSol);
+                            }
                         }
-                        if(val > 0) {
-                            explSolsList.add(compactedNewSol);
+                        else {
+                            //explSolsList.add(sol);
+                        } 
+                    }     
+                                            
+                }   
+            } else {
+                System.out.println("Solution was not improved ; trying to improve generated solutions (loop " + i + " improving " + explSolsList.size() + " former sols)");
+                //System.out.println(i + " : " + explSolsList.size());
+                for(Solution s1 : explSolsList) { // boucle sur les solutions du coup précédent
+                    stepValue = 1;
+                    ArrayList<Solution> neighbours = computeNeighbours(d,s1);
+                    //System.out.println("-->" + neighbours.size());
+                    ArrayList<Solution> solList = new ArrayList<Solution>();
+                    for(Solution k : neighbours) {
+                        for(Solution l : modifyRates(d, k)) {
+                            solList.add(l);
                         }
                     }
-                    else {
-                        //explSolsList.add(sol);
-                    } 
-                }     
-                                           
-            }   
+                    //System.out.println(":" + solList.size());
+                    for(Solution sol : solList) {
+                        sol.objectiveValue = initVal*4; // Pour ne pas que le checker fail à cause de ça (car on a sûrement allongé la durée de l'évac en diminuant le débit)
+                        sol.objectiveValue = (new Checker()).check(d,sol).endingEvacTime;
+                        if(sol.objectiveValue != -1) {
+                            Solution compactedNewSol = findBest(d, sol);
+                            int val = (new Checker()).check(d, compactedNewSol).endingEvacTime;
+                            //explSolsList.add(compactedNewSol);
+                            if((val > 0) && (val <= bestValue)) {
+                                foundBest = true;
+                                bestSol = compactedNewSol;
+                                bestValue = val;
+                                nb++;
+                                i = max_iterations+1;
+                            }
+                            if(val > 0) {
+                                explSolsListBis.add(compactedNewSol);
+                            }
+                        }
+                        else {
+                            //explSolsList.add(sol);
+                        } 
+                    }     
+                                            
+                } 
+            }
+            explSolsList = explSolsListBis;
+            //System.out.println(explSolsListBis.size());
+            i--;
             /*
             System.out.println("Trying to improve " + explSolsList.size() + " potential solutions after rates diminution...");
             for(Solution s1 : explSolsList) { // boucle partant de chaque solution bricolée et compactée

@@ -22,6 +22,7 @@ public class Checker {
     public Checker(boolean com) {
         computeInfos = true;
     }
+
     public CheckerReturn check(data d, Solution s) {
         if(debugState >= 1) { 
             System.out.println("------------------------------ Beginning solution check ------------------------------");
