@@ -1,0 +1,11 @@
+Idée de la recherche locale :
+
+Diversification : multi-start avec 
+1) La borne sup générée
+2) Des solutions construites de la même manière que la borne sup mais avec un ordre aléatoire des évacuations
+Le nombre de ces solutions générées est paramétrable
+
+Intensification :
+Cycles de "Compactage" -> "Réduction des débits" -> Compactage -> "Augmentation des débits" 
+jusqu'à ne plus trouver de meilleure solution OU 
+jusqu'à ce qu'un compteur atteigne 0 (ie on autorise des itérations au cours desquelles on n'améliore pas la valeur de la fonction objectif)
