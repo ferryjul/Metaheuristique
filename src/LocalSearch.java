@@ -58,6 +58,57 @@ public class LocalSearch {
         return bestSol;
     }
 
+    private ArrayList<Solution> computeNeighboursRate(data d, Solution initSol) {
+        //System.out.println("Computing Neighbours...");
+        ArrayList<Solution> neighbours = new ArrayList<Solution>();
+        for(int evacNode : initSol.evacNodesList.keySet()) {
+            int startDate = initSol.evacNodesList.get(evacNode).beginDate;
+            int rate = initSol.evacNodesList.get(evacNode).evacRate;
+            //System.out.println("start date = " + startDate + " ; stepValue = " + stepValue);
+            if(startDate >= stepValue) {
+                Solution bestSol = new Solution(initSol);
+                bestSol.evacNodesList.put(evacNode, new EvacNodeData(rate, startDate-stepValue));
+                //System.out.println("Node " + evacNode + " will evacuate at time " + (startDate-stepValue) + " instead of " + (startDate));
+                neighbours.add(bestSol);
+            }
+        }
+        return neighbours;
+    }
+
+    private Solution findBestRate(data d, Solution sol) {
+        this.stepValue = sol.objectiveValue/2;
+        int bestValue = sol.objectiveValue;
+        System.out.println("[Compression phase " + compressNb + "] Looking for best compression... (initial value = " + bestValue + ")");
+        Solution bestSol = sol;
+        int nb = 0;
+        int stepValueInt = stepValue;
+        Boolean foundBest = true;
+        while(foundBest || (stepValue != 1)) { // stepValue accélère la première compression (car la borne sup est très grossière) puis vaut 1 pour la suite
+            foundBest = false;
+            stepValue = stepValueInt;
+            for(Solution s : computeNeighboursRate(d, bestSol)) {
+                Checker ch = new Checker();
+                nb++;
+                int val = ch.check(d, s).endingEvacTime;
+                s.objectiveValue = val;
+                if((val > 0) && (val <= bestValue)) {
+                    foundBest = true;
+                    if(val != bestValue)  {
+                        System.out.println("[Compression phase " + compressNb + "] Best solution found (cost = " + val + ")");
+                    }
+                    bestValue = val;
+                    bestSol = s;
+                }
+            }
+            if(!foundBest) {
+                stepValueInt = stepValue / 2;
+            }
+        }
+        System.out.println("[Compression phase " + compressNb + "] Best solution found at cost " + bestValue + "(explored  " + nb + " solutions)");
+        compressNb++;
+        return bestSol;
+    }
+
     private ArrayList<Solution> modifyRates(data d, Solution sol) {
         System.out.println("Trying to reduce rates to allow parallelization...");
         // find where the limitant edge is
