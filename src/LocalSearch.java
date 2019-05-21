@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.lang.Object;
 
 public class LocalSearch {
@@ -6,6 +7,8 @@ public class LocalSearch {
     private int stepValue = 1;
     int compressNb = 0;
     int initVal; 
+    Boolean maxRatesComputed = false;
+    HashMap<Integer, Integer> maxEvacRates;
 
     private ArrayList<Solution> computeNeighbours(data d, Solution initSol) {
         //System.out.println("Computing Neighbours...");
@@ -76,6 +79,21 @@ public class LocalSearch {
     }
 
     private Solution findBestRate(data d, Solution sol) {
+        if(!maxRatesComputed) { // if first time then we compute max rates once
+            maxEvacRates = new HashMap<Integer, Integer>();
+            for(Path_data evacPath : d.evac_paths.values()) {
+                int currNode = evacPath.origin;
+                int minCapa = Integer.MAX_VALUE;
+                for(int nextNode : evacPath.following) {                   
+                    if(d.getEdgeCapa(currNode, nextNode) < minCapa) {
+                        minCapa = d.getEdgeCapa(currNode, nextNode);
+                    }
+                    currNode = nextNode;
+                }              
+                maxEvacRates.put(evacPath.origin, minCapa);
+            }
+            maxRatesComputed = true;
+        } // Now maxEvacRates(x) is the max rate possible for evac path of node x
         this.stepValue = sol.objectiveValue/2;
         int bestValue = sol.objectiveValue;
         System.out.println("[Compression phase " + compressNb + "] Looking for best compression... (initial value = " + bestValue + ")");
