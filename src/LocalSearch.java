@@ -6,6 +6,7 @@ public class LocalSearch {
 
     private int stepValue = 1;
     int compressNb = 0;
+    int compressRNb = 0;
     int initVal; 
     Boolean maxRatesComputed = false;
     HashMap<Integer, Integer> maxEvacRates;
@@ -68,9 +69,9 @@ public class LocalSearch {
             int startDate = initSol.evacNodesList.get(evacNode).beginDate;
             int rate = initSol.evacNodesList.get(evacNode).evacRate;
             //System.out.println("start date = " + startDate + " ; stepValue = " + stepValue);
-            if(startDate >= stepValue) {
+            if(maxEvacRates.get(evacNode) > rate) {
                 Solution bestSol = new Solution(initSol);
-                bestSol.evacNodesList.put(evacNode, new EvacNodeData(rate, startDate-stepValue));
+                bestSol.evacNodesList.put(evacNode, new EvacNodeData(rate+1, startDate));
                 //System.out.println("Node " + evacNode + " will evacuate at time " + (startDate-stepValue) + " instead of " + (startDate));
                 neighbours.add(bestSol);
             }
@@ -94,16 +95,15 @@ public class LocalSearch {
             }
             maxRatesComputed = true;
         } // Now maxEvacRates(x) is the max rate possible for evac path of node x
-        this.stepValue = sol.objectiveValue/2;
         int bestValue = sol.objectiveValue;
-        System.out.println("[Compression phase " + compressNb + "] Looking for best compression... (initial value = " + bestValue + ")");
+        System.out.println("[Rate augment phase " + compressRNb + "] ... (initial value = " + bestValue + ")");
         Solution bestSol = sol;
         int nb = 0;
-        int stepValueInt = stepValue;
+    
         Boolean foundBest = true;
-        while(foundBest || (stepValue != 1)) { // stepValue accélère la première compression (car la borne sup est très grossière) puis vaut 1 pour la suite
+        while(foundBest) { // stepValue accélère la première compression (car la borne sup est très grossière) puis vaut 1 pour la suite
             foundBest = false;
-            stepValue = stepValueInt;
+
             for(Solution s : computeNeighboursRate(d, bestSol)) {
                 Checker ch = new Checker();
                 nb++;
@@ -112,17 +112,15 @@ public class LocalSearch {
                 if((val > 0) && (val <= bestValue)) {
                     foundBest = true;
                     if(val != bestValue)  {
-                        System.out.println("[Compression phase " + compressNb + "] Best solution found (cost = " + val + ")");
+                        System.out.println("[Rate augment phase " + compressRNb + "] Best solution found (cost = " + val + ")");
                     }
                     bestValue = val;
                     bestSol = s;
                 }
             }
-            if(!foundBest) {
-                stepValueInt = stepValue / 2;
-            }
+    
         }
-        System.out.println("[Compression phase " + compressNb + "] Best solution found at cost " + bestValue + "(explored  " + nb + " solutions)");
+        System.out.println("[Rate augment" + compressRNb + "] Best solution found at cost " + bestValue + "(explored  " + nb + " solutions)");
         compressNb++;
         return bestSol;
     }
