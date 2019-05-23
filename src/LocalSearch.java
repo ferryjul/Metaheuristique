@@ -325,9 +325,9 @@ public class LocalSearch {
 
     public void localSearch(data d) { // We will try to implement multi-start
         Long startTime = java.lang.System.currentTimeMillis();
-        int multiStartNbPoints = 7;
+        int multiStartNbPoints = 100;
         Boolean useMultiThreading = false;
-        int nbThreads = 1;
+        int nbThreads = 5;
         System.out.println("Generating multi start points...");
         ArrayList<Solution> starts = new ArrayList<Solution>();
         Solution s = computeInfSup.computeSupSolution(d);
@@ -386,8 +386,40 @@ public class LocalSearch {
        
         if(useMultiThreading) {
             int k = 0;
+            int thr_c = 0;
             ArrayList<Thread> threadList = new ArrayList<Thread>();
-            for(Solution sol : starts) {
+            while(k < starts.size()) {
+                if(thr_c < nbThreads) {
+                    Solution sol = starts.get(k);
+                    Thread t = new Thread(new localSearchCalculations(d, sol, k));
+                    threadList.add(t);
+                    t.start();
+                    System.out.println("[MAIN THREAD] Launching new Thread");
+                    thr_c++;
+                    k++;
+                } else {
+                    for(Thread t : threadList) {
+                        try {
+                            t.join();
+                        } catch(Exception e) {
+                            e.printStackTrace();
+                        }
+                        threadList.remove(t);
+                        thr_c--;
+                        System.out.println(counter + " threads have finished working");
+                        break; // Pour en re créer un desuite
+                    }
+                }
+            }
+            for(Thread t : threadList) {
+                try {
+                    t.join();
+                } catch(Exception e) {
+                    e.printStackTrace();
+                }              
+                System.out.println(counter + " threads have finished working");
+            }
+            /*for(Solution sol : starts) {
                 Thread t = new Thread(new localSearchCalculations(d, sol, k));
                 threadList.add(t);
                 t.start();
@@ -401,7 +433,7 @@ public class LocalSearch {
                     e.printStackTrace();
                 }
                 System.out.println(counter + " threads have finished working");
-            }
+            }*/
             for(int aVal : values) {
                 if(aVal < bestVal) {
                     bestVal = aVal;
