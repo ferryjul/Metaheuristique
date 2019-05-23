@@ -22,7 +22,7 @@ public class localSearchCalculations implements Runnable {
     }
 
     public void run() {
-        int aVal = localSearchIntern(globalData,  globalSol);
+        Solution aVal = localSearchIntern(globalData,  globalSol);
         synchronized(LocalSearch.values) {
             LocalSearch.values.add(aVal);
         }
@@ -193,7 +193,7 @@ public class localSearchCalculations implements Runnable {
     }
 
 
-    private Integer localSearchIntern(data d, Solution s) {
+    private Solution localSearchIntern(data d, Solution s) {
         this.initVal = s.objectiveValue;
         int test = (new Checker()).check(d, s).endingEvacTime;
         Solution baseSol = findBest(d,s);
@@ -284,12 +284,12 @@ public class localSearchCalculations implements Runnable {
             //System.out.println(explSolsListBis.size());
             i--;
         }
-        (new Checker()).check(d, bestSol);
+        bestSol.objectiveValue = (new Checker()).check(d, bestSol).endingEvacTime;
         if(debug >= 1) {
             System.out.println("[THREAD" + index + "] " + "Explored " + nb + " rate diminutions.");
             System.out.println("[THREAD" + index + "] " + "Best solution found at cost " + bestValue + "(explored  " + nb + " solutions)");     
         }  
-        return bestValue;
+        return bestSol;
     }
 
 }

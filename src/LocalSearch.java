@@ -1,6 +1,9 @@
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Random;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
 Calculation was first not intented to be multi threaded, so we kept all the original code in this file.
@@ -8,7 +11,7 @@ Calculation was first not intented to be multi threaded, so we kept all the orig
 
 public class LocalSearch {
 
-    public static volatile ArrayList<Integer> values = new ArrayList<Integer>();
+    public static volatile ArrayList<Solution> values = new ArrayList<Solution>();
     public static volatile Integer counter = 0;
     private int stepValue = 1;
     int compressNb = 0;
@@ -170,7 +173,7 @@ public class LocalSearch {
         return ret;
     }*/
 
-    private Integer localSearchIntern(data d, Solution s) {
+    private Solution localSearchIntern(data d, Solution s) {
         this.initVal = s.objectiveValue;
         int test = (new Checker()).check(d, s).endingEvacTime;
         Solution baseSol = findBest(d,s);
@@ -256,53 +259,12 @@ public class LocalSearch {
             explSolsList = explSolsListBis;
             //System.out.println(explSolsListBis.size());
             i--;
-            /*
-            System.out.println("Trying to improve " + explSolsList.size() + " potential solutions after rates diminution...");
-            for(Solution s1 : explSolsList) { // boucle partant de chaque solution bricolée et compactée
-                if(s1.objectiveValue == -1) {
-                    ArrayList<Solution> solList = modifyRates(d, s1);
-                        for(Solution sol : solList) {
-                            sol.objectiveValue = initVal; // Pour ne pas que le checker fail à cause de ça (car on a sûrement allongé la durée de l'évac en diminuant le débit)
-                            sol.objectiveValue = (new Checker()).check(d,sol).endingEvacTime;
-                            if(sol.objectiveValue != -1) {
-                                Solution compactedNewSol = findBest(d, sol);
-                                int val = (new Checker()).check(d, compactedNewSol).endingEvacTime;
-                                if((val > 0) && (val <= bestValue)) {
-                                    foundBest = true;
-                                    bestSol = compactedNewSol;
-                                    bestValue = val;
-                                    nb++;
-                                }
-                            }
-                        }
-                }
-                else {
-                    for(Solution s2 : computeNeighbours(d, s1)) {
-                        ArrayList<Solution> solList = modifyRates(d, s2);
-                        for(Solution sol : solList) {
-                            sol.objectiveValue = initVal; // Pour ne pas que le checker fail à cause de ça (car on a sûrement allongé la durée de l'évac en diminuant le débit)
-                            sol.objectiveValue = (new Checker()).check(d,sol).endingEvacTime;
-                            if(sol.objectiveValue != -1) {
-                                Solution compactedNewSol = findBest(d, sol);
-                                int val = (new Checker()).check(d, compactedNewSol).endingEvacTime;
-                                if((val > 0) && (val <= bestValue)) {
-                                    foundBest = true;
-                                    bestSol = compactedNewSol;
-                                    bestValue = val;
-                                    nb++;
-                                }
-                            }
-                        }
-                    }
-                }
-            } */
-            //foundBest = false;
             
         }
-        (new Checker()).check(d, bestSol);
+        bestSol.objectiveValue = (new Checker()).check(d, bestSol).endingEvacTime;
         System.out.println("Explored " + nb + " rate diminutions.");
         System.out.println("Best solution found at cost " + bestValue + "(explored  " + nb + " solutions)");       
-        return bestValue;
+        return bestSol;
     }
 
     public ArrayList<Integer> generateRandomSeq(HashMap<Integer, Path_data> evacPaths) {
@@ -323,11 +285,11 @@ public class LocalSearch {
         return retList;
     }
 
-    public void localSearch(data d) { // We will try to implement multi-start
+    public void localSearch(data d, String name) { // We will try to implement multi-start
         Long startTime = java.lang.System.currentTimeMillis();
-        int multiStartNbPoints = 100;
-        Boolean useMultiThreading = false;
-        int nbThreads = 5;
+        int multiStartNbPoints = 250;
+        Boolean useMultiThreading = true;
+        int nbThreads = 4;
         System.out.println("Generating multi start points...");
         ArrayList<Solution> starts = new ArrayList<Solution>();
         Solution s = computeInfSup.computeSupSolution(d);
@@ -383,7 +345,7 @@ public class LocalSearch {
             
         }
         int bestVal = Integer.MAX_VALUE;
-       
+        Solution bestSolutionComputed = new Solution();
         if(useMultiThreading) {
             int k = 0;
             int thr_c = 0;
@@ -434,17 +396,19 @@ public class LocalSearch {
                 }
                 System.out.println(counter + " threads have finished working");
             }*/
-            for(int aVal : values) {
-                if(aVal < bestVal) {
-                    bestVal = aVal;
+            for(Solution aVal : values) {
+                if(aVal.objectiveValue < bestVal) {
+                    bestVal = aVal.objectiveValue;
+                    bestSolutionComputed = aVal;
                 }
             }
         } else {
             for(Solution sol : starts) {
                 System.out.println("------------------------------------");
-                int aVal = localSearchIntern(d,  sol);
-                if(aVal < bestVal) {
-                    bestVal = aVal;
+                Solution aVal = localSearchIntern(d,  sol);
+                if(aVal.objectiveValue < bestVal) {
+                    bestVal = aVal.objectiveValue;
+                    bestSolutionComputed = aVal;
                 }
             }
         }
@@ -456,5 +420,23 @@ public class LocalSearch {
             ch.debugState = 2;
             ch.check(d, sol);
         }*/
+        // Save the result
+        SolutionIO solIO = new SolutionIO();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHH:mm:ss");
+	    Date date = new Date();
+        if(useMultiThreading) {
+            bestSolutionComputed.other = "Solution generated using multi-threading";
+        } else {
+            bestSolutionComputed.other = "Solution generated without using multi-threading";
+        }
+        bestSolutionComputed.computeTime = (((Long)(endTime - startTime)).intValue())/1000;
+        int test = solIO.write(bestSolutionComputed, "../Generated_best_solutions/" + name + dateFormat.format(date) );
+        if (test==0)
+        {
+            System.out.println("Fichier solution créé \n");
+        }
+        else{
+            System.out.println("[ERROR] Fichier solution fail \n");
+        }
     }
 }

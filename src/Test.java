@@ -65,11 +65,12 @@ public static void main(String[] args) {
         Checker TD_checker2 = new Checker();
         TD_checker2.check(TD_data, supSol);
         //TD_checker.printState();
-        (new LocalSearch()).localSearch(TD_data);
+        (new LocalSearch()).localSearch(TD_data, "exempleTD");
     }
     else {
-        String fileData = "../InstancesInt/sparse_10_30_3_1_I.full";
-       // String fileData = "../InstancesInt/medium_10_30_3_5_I.full";
+        String name = "sparse_10_30_3_1_I.full";
+        // String name = "medium_10_30_3_5_I.full";
+        String fileData = "../InstancesInt/" + name;   
         /* On crée l'exemple du TD */
         dataReader reader = new dataReader();
         SolutionIO solIO = new SolutionIO();
@@ -103,7 +104,7 @@ public static void main(String[] args) {
         Checker TD_checker2 = new Checker();
         TD_checker2.check(TD_data, supSol);
         //TD_checker.printState();
-        (new LocalSearch()).localSearch(TD_data);
+        (new LocalSearch()).localSearch(TD_data, name);
     }
 
     }
