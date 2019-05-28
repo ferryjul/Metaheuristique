@@ -11,7 +11,7 @@ public static void main(String[] args) {
         dataReader reader = new dataReader();
         SolutionIO solIO = new SolutionIO();
         data TD_data = new data();
-        TD_data = reader.Convert_File_In_Data("donneetest.full");
+        TD_data = reader.Convert_File_In_Data("../InstancesInt/ExempleSimple.full");
         TD_data.read_data();
         /* On crée la solution du TD */
         Solution TD_sol = new Solution();
@@ -65,10 +65,11 @@ public static void main(String[] args) {
         Checker TD_checker2 = new Checker();
         TD_checker2.check(TD_data, supSol);
         //TD_checker.printState();
-        (new LocalSearch()).localSearch(TD_data, "exempleTD");
+        (new LocalSearch()).localSearch(TD_data, "ExempleSimple");
     }
     else {
         String inst = "sparse_10_30_3_1_I";
+        //String inst = "dense_10_30_3_1_I";
         String name = inst + ".full";
         // String name = "medium_10_30_3_5_I.full";
         String fileData = "../InstancesInt/" + name;   

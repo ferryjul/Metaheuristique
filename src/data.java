@@ -7,6 +7,7 @@ private int num_evac;
 private int safe_node;
 private int nb_edge;
 private int nb_node;
+private int id_counter = 0;
 public HashMap<Integer, Path_data> evac_paths;
 private HashMap<Integer, HashMap<Integer, Edge_data>> edges;  // origin, hashmap<destination, edge_data> => O(1) access
 
@@ -45,7 +46,7 @@ public void set_safe_node(int id) {
 }
 
 public void add_evac_path(int origin, int pop, int rate, int k, ArrayList<Integer> follow) { // note that aList must be created by caller
-	this.evac_paths.put(origin, new Path_data(origin, pop, k, rate, follow));
+	this.evac_paths.put(origin, new Path_data(origin, pop, k, rate, follow, id_counter++));
 }
 
 public void add_edge(int origin, int destination, int duedate, int length, int capacity) { // version qui prend en compte le fait que les arcs ne soient pas dirigés

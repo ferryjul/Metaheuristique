@@ -87,7 +87,7 @@ public int write(Solution sol, String File_Name) {
 	fWrit.write(sol.evacNodesNB+"\n");
 	for(int origin : sol.evacNodesList.keySet())
 	{
-		fWrit.write(origin+" "+sol.evacNodesList.get(origin).beginDate+" "+sol.evacNodesList.get(origin).evacRate+"\n");
+		fWrit.write(origin+" "+sol.evacNodesList.get(origin).evacRate+" "+sol.evacNodesList.get(origin).beginDate+"\n");
 	}
 	if (sol.nature)
 	{

@@ -19,6 +19,7 @@ public class LocalSearch {
     int compressRNb = 0;
     int initVal; 
     Boolean maxRatesComputed = false;
+    Boolean respDueDates = false;
     HashMap<Integer, Integer> maxEvacRates;
 
     private ArrayList<Solution> computeNeighbours(data d, Solution initSol) {
@@ -138,7 +139,6 @@ public class LocalSearch {
         System.out.println("Trying to reduce rates to allow parallelization...");
         // find where the limitant edge is
         ArrayList<Solution> r = new ArrayList<Solution>();
-        sol.objectiveValue = initVal*4;
         Checker ch = (new Checker(true));
         //ch.debugState = 1;
         CheckerReturn solAnalysis = ch.check(d, sol);
@@ -174,16 +174,17 @@ public class LocalSearch {
                         bestSol.evacNodesList.put(anotherEvacNode, new EvacNodeData(bestSol.evacNodesList.get(anotherEvacNode).evacRate, bestSol.evacNodesList.get(anotherEvacNode).beginDate + factor));
                     }
                 }
-                r.add(bestSol);
-
+                if(factor < sol.objectiveValue) { // if generated solution is not too long (arbitrary measure)
+                    r.add(bestSol);
+                }
                 /* to be removed : many informations display */
-                System.out.println("SOLUTION GEN ANALYSIS :");
+                /*System.out.println("SOLUTION GEN ANALYSIS :");
                 System.out.println("Original begin time was : " + sol.evacNodesList.get(aNode).beginDate);
                 System.out.println("factor was : " + factor + " and original ending time was : " + (sol.evacNodesList.get(aNode).beginDate + factor2));
                 System.out.println("new ending time is : " + (sol.evacNodesList.get(aNode).beginDate + factor1));
                 Checker chk = (new Checker(true));
                 chk.debugState = 1;
-                chk.check(d, bestSol);
+                chk.check(d, bestSol);*/
 
             }
         }
@@ -192,6 +193,8 @@ public class LocalSearch {
         int rest = total%(solAnalysis.problematicNodes.size());
         // We also compute a "fair" solution
         Boolean first = true;
+        int minBeginDate = Integer.MAX_VALUE;
+        int maxFactor = Integer.MIN_VALUE;
         Solution bestSolAv = new Solution(sol);
         Boolean make = true; // Because this solution constr is often impossible like this
         for(int aNode : solAnalysis.problematicNodes) {
@@ -213,19 +216,27 @@ public class LocalSearch {
             int factor = factor1 - factor2 + 1;
             if(factor < 0) {
                 make = false;
+                break;
                // System.out.println("Fair alt node " + aNode + " was evacuating at rate " + sol.evacNodesList.get(aNode).evacRate + " now at rate " + bestSolAv.evacNodesList.get(aNode).evacRate);
-            }
-            bestSolAv.objectiveValue+=factor;
-            //System.out.println("factor = " + factor);
-            for(Integer anotherEvacNode : bestSolAv.evacNodesList.keySet()) {
-                if(bestSolAv.evacNodesList.get(aNode).beginDate < bestSolAv.evacNodesList.get(anotherEvacNode).beginDate) {
-                    bestSolAv.evacNodesList.put(anotherEvacNode, new EvacNodeData(bestSolAv.evacNodesList.get(anotherEvacNode).evacRate, bestSolAv.evacNodesList.get(anotherEvacNode).beginDate + factor));
+            } else {
+                if(factor > maxFactor) {
+                    maxFactor = factor;
                 }
+                if(sol.evacNodesList.get(aNode).beginDate < minBeginDate) {
+                    minBeginDate = sol.evacNodesList.get(aNode).beginDate;
+                }
+            }           
+        }
+        bestSolAv.objectiveValue+=maxFactor;
+        for(Integer anotherEvacNode : bestSolAv.evacNodesList.keySet()) {
+            if(minBeginDate < bestSolAv.evacNodesList.get(anotherEvacNode).beginDate) {
+                bestSolAv.evacNodesList.put(anotherEvacNode, new EvacNodeData(bestSolAv.evacNodesList.get(anotherEvacNode).evacRate, bestSolAv.evacNodesList.get(anotherEvacNode).beginDate + maxFactor));
             }
-            bestSolAv.objectiveValue+=factor;
         }
         if(make) {
-            r.add(bestSolAv);
+            if(maxFactor < sol.objectiveValue) { // if generated solution is not too long (arbitrary measure)
+                r.add(bestSolAv);
+            }
         }
         return r;
     }
@@ -239,9 +250,17 @@ public class LocalSearch {
     private Solution localSearchIntern(data d, Solution s) {
         this.initVal = s.objectiveValue;
         int test = (new Checker()).check(d, s).endingEvacTime;
-        Solution baseSol = findBest(d,s);
-        baseSol.objectiveValue = (new Checker()).check(d, baseSol).endingEvacTime;
-        int bestValue = baseSol.objectiveValue;
+        Solution baseSol = findBest(d,s);      
+        /* Due date check */
+        Checker checkD = (new Checker());
+        checkD.checkDueDate = respDueDates;
+        baseSol.objectiveValue = checkD.check(d, baseSol).endingEvacTime;
+        int bestValue = baseSol.objectiveValue;      
+        if(bestValue == -1) {
+            Solution sh = new Solution();
+            sh.objectiveValue = Integer.MAX_VALUE;
+            return sh;
+        }
         Solution bestSol = baseSol;
         int nb = 0;
         Boolean foundBest = true;
@@ -261,6 +280,7 @@ public class LocalSearch {
                         //sol.objectiveValue = initVal*4; // Pour ne pas que le checker fail à cause de ça (car on a sûrement allongé la durée de l'évac en diminuant le débit)
                         Checker ch = (new Checker());
                         //ch.debugState = 1;
+                        ch.checkDueDate = respDueDates;
                         sol.objectiveValue = ch.check(d,sol).endingEvacTime;
                         if(sol.objectiveValue != -1) {
                             Solution compactedNewSol0 = findBest(d, sol); // 2 cycles pour être sûr de réduire au max
@@ -281,7 +301,7 @@ public class LocalSearch {
                             }
                         }
                         else {
-                            System.out.println("Should not be printed...");
+                            System.out.println("\n\nShould not be printed...");
                             explSolsListBis.add(sol);
                         } 
                     }     
@@ -360,9 +380,9 @@ public class LocalSearch {
 
     public void localSearch(data d, String name) { // We will try to implement multi-start
         Long startTime = java.lang.System.currentTimeMillis();
-        int multiStartNbPoints = 3;
-        Boolean useMultiThreading = false;
-        int nbThreads = 8;
+        int multiStartNbPoints = 100;
+        Boolean useMultiThreading = true;
+        int nbThreads = 4;
         System.out.println("Generating multi start points...");
         ArrayList<Solution> starts = new ArrayList<Solution>();
         Solution s = computeInfSup.computeSupSolution(d);
@@ -504,7 +524,8 @@ public class LocalSearch {
         }
         bestSolutionComputed.instanceName = name;
         bestSolutionComputed.computeTime = (((Long)(endTime - startTime)).intValue())/1000;
-        int test = solIO.write(bestSolutionComputed, "../Generated_best_solutions/" + name + dateFormat.format(date) );
+        //int test = solIO.write(bestSolutionComputed, "../Generated_best_solutions/" + name + dateFormat.format(date) );
+        int test = sortSolution.sortAndSaveSol(bestSolutionComputed, d, "../Generated_best_solutions/"+(name+dateFormat.format(date)));
         if (test==0)
         {
             System.out.println("Fichier solution créé \n");
