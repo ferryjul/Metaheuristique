@@ -51,9 +51,7 @@ public class localSearchCalculations implements Runnable {
     private Solution findBest(data d, Solution sol) {
         this.stepValue = sol.objectiveValue/2;
         int bestValue = sol.objectiveValue;
-        if(debug >= 2) {
-            System.out.println("[THREAD" + index + "] " + "[Compression phase " + compressNb + "] Looking for best compression... (initial value = " + bestValue + ")");
-        }
+        System.out.println("[Compression phase " + compressNb + "] Looking for best compression... (initial value = " + bestValue + ")");
         Solution bestSol = sol;
         int nb = 0;
         int stepValueInt = stepValue;
@@ -69,9 +67,7 @@ public class localSearchCalculations implements Runnable {
                 if((val > 0) && (val <= bestValue)) {
                     foundBest = true;
                     if(val != bestValue)  {
-                        if(debug >= 2) {
-                            System.out.println("[THREAD" + index + "] " + "[Compression phase " + compressNb + "] Best solution found (cost = " + val + ")");
-                        }
+                        System.out.println("[Compression phase " + compressNb + "] Best solution found (cost = " + val + ")");
                     }
                     bestValue = val;
                     bestSol = s;
@@ -81,9 +77,7 @@ public class localSearchCalculations implements Runnable {
                 stepValueInt = stepValue / 2;
             }
         }
-        if(debug >= 2) {
-            System.out.println("[THREAD" + index + "] " + "[Compression phase " + compressNb + "] Best solution found at cost " + bestValue + "(explored  " + nb + " solutions)");
-        }
+        System.out.println("[Compression phase " + compressNb + "] Best solution found at cost " + bestValue + "(explored  " + nb + " solutions)");
         compressNb++;
         return findBestRate(d, bestSol);
     }
@@ -122,9 +116,7 @@ public class localSearchCalculations implements Runnable {
             maxRatesComputed = true;
         } // Now maxEvacRates(x) is the max rate possible for evac path of node x
         int bestValue = sol.objectiveValue;
-        if(debug >= 2) {
-            System.out.println("[THREAD" + index + "] " + "[Rate augment phase " + compressRNb + "] ... (initial value = " + bestValue + ")");
-        }
+        System.out.println("[Rate augment phase " + compressRNb + "] ... (initial value = " + bestValue + ")");
         Solution bestSol = sol;
         int nb = 0;    
         Boolean foundBest = true;
@@ -139,9 +131,7 @@ public class localSearchCalculations implements Runnable {
                 if((val > 0) && (val <= bestValue)) {
                     foundBest = true;
                     if(val != bestValue)  {
-                        if(debug >= 2) {
-                            System.out.println("[THREAD" + index + "] " + "[Rate augment phase " + compressRNb + "] Best solution found (cost = " + val + ")");
-                        }
+                        System.out.println("[Rate augment phase " + compressRNb + "] Best solution found (cost = " + val + ")");
                     }
                     bestValue = val;
                     bestSol = s;
@@ -149,28 +139,62 @@ public class localSearchCalculations implements Runnable {
             }
     
         }
-        if(debug >= 2) {
-            System.out.println("[THREAD" + index + "] " + "[Rate augment phase " + compressRNb + "] Best solution found at cost " + bestValue + "(explored  " + nb + " solutions)");
-        }
+        System.out.println("[Rate augment phase " + compressRNb + "] Best solution found at cost " + bestValue + "(explored  " + nb + " solutions)");
         compressRNb++;
         return bestSol;
     }
 
     private ArrayList<Solution> modifyRates(data d, Solution sol) {
-        if(debug >= 2) {
-            System.out.println("[THREAD" + index + "] " + "Trying to reduce rates to allow parallelization...");
-        }
+        System.out.println("Trying to reduce rates to allow parallelization...");
         // find where the limitant edge is
         ArrayList<Solution> r = new ArrayList<Solution>();
         sol.objectiveValue = initVal*4;
-        CheckerReturn solAnalysis = (new Checker(true)).check(d, sol);
+        Checker ch = (new Checker(true));
+        //ch.debugState = 1;
+        CheckerReturn solAnalysis = ch.check(d, sol);
+        if(solAnalysis.endingEvacTime != -1) { // If the solution is valid, something went wrong
+            Checker ch2 = (new Checker(true)); // So we display it
+            ch2.debugState = 1;
+            ch2.check(d, sol);
+        }
         for(int aNode : solAnalysis.problematicNodes) { // Unfair reductions loop
             Solution bestSol = new Solution(sol);
             //System.out.println("pb at node " + aNode + " (exceedent flow = " + solAnalysis.exceedentFlow + ")");
             if(sol.evacNodesList.get(aNode).evacRate - solAnalysis.exceedentFlow > 0) {
                 bestSol.evacNodesList.put(aNode, new EvacNodeData(sol.evacNodesList.get(aNode).evacRate - solAnalysis.exceedentFlow, sol.evacNodesList.get(aNode).beginDate));
                 //System.out.println("Node " + aNode + " will now evacuate at rate " + bestSol.evacNodesList.get(aNode).evacRate + " instead of " + sol.evacNodesList.get(aNode).evacRate);
+                /* Now we try to make it feasible by shifting following tasks*/
+                int factor1 = (d.evac_paths.get(aNode).population)/(bestSol.evacNodesList.get(aNode).evacRate);
+                if((d.evac_paths.get(aNode).population)%(bestSol.evacNodesList.get(aNode).evacRate) != 0) {
+                    factor1++;
+                }
+                int factor2 = (d.evac_paths.get(aNode).population)/(sol.evacNodesList.get(aNode).evacRate);
+                if((d.evac_paths.get(aNode).population)%(sol.evacNodesList.get(aNode).evacRate) != 0) {
+                    factor2++;
+                }
+                int factor = factor1 - factor2 + 2;
+                if(factor < 0) { // Should not happen...
+                    System.out.println("node " + aNode + " was evacuating at rate " + sol.evacNodesList.get(aNode).evacRate + " now at rate " + bestSol.evacNodesList.get(aNode).evacRate);
+                }
+                bestSol.objectiveValue+=factor;
+                //System.out.println("factor = " + factor);
+                for(Integer anotherEvacNode : bestSol.evacNodesList.keySet()) { // We shift all following evacuations
+                    if(bestSol.evacNodesList.get(aNode).beginDate < bestSol.evacNodesList.get(anotherEvacNode).beginDate) {
+                        System.out.println("shifting node " + anotherEvacNode + " from date " + bestSol.evacNodesList.get(anotherEvacNode).beginDate + " to " + (bestSol.evacNodesList.get(anotherEvacNode).beginDate+factor));
+                        bestSol.evacNodesList.put(anotherEvacNode, new EvacNodeData(bestSol.evacNodesList.get(anotherEvacNode).evacRate, bestSol.evacNodesList.get(anotherEvacNode).beginDate + factor));
+                    }
+                }
                 r.add(bestSol);
+
+                /* to be removed : many informations display */
+                System.out.println("SOLUTION GEN ANALYSIS :");
+                System.out.println("Original begin time was : " + sol.evacNodesList.get(aNode).beginDate);
+                System.out.println("factor was : " + factor + " and original ending time was : " + (sol.evacNodesList.get(aNode).beginDate + factor2));
+                System.out.println("new ending time is : " + (sol.evacNodesList.get(aNode).beginDate + factor1));
+                Checker chk = (new Checker(true));
+                chk.debugState = 1;
+                chk.check(d, bestSol);
+
             }
         }
         int total = solAnalysis.exceedentFlow;
@@ -179,6 +203,7 @@ public class localSearchCalculations implements Runnable {
         // We also compute a "fair" solution
         Boolean first = true;
         Solution bestSolAv = new Solution(sol);
+        Boolean make = true; // Because this solution constr is often impossible like this
         for(int aNode : solAnalysis.problematicNodes) {
             if(first) { // choix arbitraire : si nbre non multiple on donne plus au premier noeud à évacuer
                 first = false;
@@ -187,11 +212,39 @@ public class localSearchCalculations implements Runnable {
             else {
                 bestSolAv.evacNodesList.put(aNode, new EvacNodeData(sol.evacNodesList.get(aNode).evacRate - average, sol.evacNodesList.get(aNode).beginDate));
             }
+            int factor1 = (d.evac_paths.get(aNode).population)/(bestSolAv.evacNodesList.get(aNode).evacRate);
+            if((d.evac_paths.get(aNode).population)%(bestSolAv.evacNodesList.get(aNode).evacRate) != 0) {
+                factor1++;
+            }
+            int factor2 = (d.evac_paths.get(aNode).population)/(sol.evacNodesList.get(aNode).evacRate);
+            if((d.evac_paths.get(aNode).population)%(sol.evacNodesList.get(aNode).evacRate) != 0) {
+                factor2++;
+            }
+            int factor = factor1 - factor2 + 1;
+            if(factor < 0) {
+                make = false;
+               // System.out.println("Fair alt node " + aNode + " was evacuating at rate " + sol.evacNodesList.get(aNode).evacRate + " now at rate " + bestSolAv.evacNodesList.get(aNode).evacRate);
+            }
+            bestSolAv.objectiveValue+=factor;
+            //System.out.println("factor = " + factor);
+            for(Integer anotherEvacNode : bestSolAv.evacNodesList.keySet()) {
+                if(bestSolAv.evacNodesList.get(aNode).beginDate < bestSolAv.evacNodesList.get(anotherEvacNode).beginDate) {
+                    bestSolAv.evacNodesList.put(anotherEvacNode, new EvacNodeData(bestSolAv.evacNodesList.get(anotherEvacNode).evacRate, bestSolAv.evacNodesList.get(anotherEvacNode).beginDate + factor));
+                }
+            }
+            bestSolAv.objectiveValue+=factor;
         }
-        r.add(bestSolAv);
+        if(make) {
+            r.add(bestSolAv);
+        }
         return r;
     }
 
+  /*  private ArrayList<Solution> trySwaps(data d, Solution s) { // returns a list of solutions with a different order
+        ArrayList<Solution> ret = new ArrayList<Solution>();
+        for()
+        return ret;
+    }*/
 
     private Solution localSearchIntern(data d, Solution s) {
         this.initVal = s.objectiveValue;
@@ -202,25 +255,29 @@ public class localSearchCalculations implements Runnable {
         Solution bestSol = baseSol;
         int nb = 0;
         Boolean foundBest = true;
-        if(debug >= 2) {
-            System.out.println("[THREAD" + index + "] " + "[MAIN] Will try to improve solution at cost " + bestValue + " (former cost was " + test + "))");
-        }
+        System.out.println("[MAIN] Will try to improve solution at cost " + bestValue + " (former cost was " + test + "))");
         ArrayList<Solution> explSolsList = new ArrayList<Solution>();
-        int max_iterations = 5;
+        int max_iterations = 0; // Useless now
         int i = max_iterations;
         while(foundBest || i > 0) {
+            System.out.println("new loop");
             ArrayList<Solution> explSolsListBis = new ArrayList<Solution>();
             foundBest = false;
-            if(i == max_iterations) {               
+            if(i == max_iterations) {        
+                stepValue = 1;  // So generated neighbours stay close     
                 for(Solution s1 : computeNeighbours(d, bestSol)) { // boucle partant de la solution initiale dans tous les sens
                     ArrayList<Solution> solList = modifyRates(d, s1);
                     for(Solution sol : solList) {
-                        sol.objectiveValue = initVal*4; // Pour ne pas que le checker fail à cause de ça (car on a sûrement allongé la durée de l'évac en diminuant le débit)
-                        sol.objectiveValue = (new Checker()).check(d,sol).endingEvacTime;
+                        //sol.objectiveValue = initVal*4; // Pour ne pas que le checker fail à cause de ça (car on a sûrement allongé la durée de l'évac en diminuant le débit)
+                        Checker ch = (new Checker());
+                        //ch.debugState = 1;
+                        sol.objectiveValue = ch.check(d,sol).endingEvacTime;
                         if(sol.objectiveValue != -1) {
-                            Solution compactedNewSol = findBest(d, sol);
+                            Solution compactedNewSol0 = findBest(d, sol); // 2 cycles pour être sûr de réduire au max
+                            Solution compactedNewSol = findBest(d, compactedNewSol0);
                             //Solution compactedNewSol = (d, compactedSol);
                             int val = (new Checker()).check(d, compactedNewSol).endingEvacTime;
+                            compactedNewSol.objectiveValue = val;
                             //explSolsList.add(compactedNewSol);
                             if((val > 0) && (val <= bestValue)) {
                                 foundBest = true;
@@ -234,27 +291,30 @@ public class localSearchCalculations implements Runnable {
                             }
                         }
                         else {
-                            //explSolsList.add(sol);
+                            System.out.println("Should not be printed...");
+                            explSolsListBis.add(sol);
                         } 
                     }     
                                             
                 }   
             } else {
-                if(debug >= 2) {
-                    System.out.println("[THREAD" + index + "] " + "Solution was not improved ; trying to improve generated solutions (loop " + i + " improving " + explSolsList.size() + " former sols)");
-                }
-                    //System.out.println(i + " : " + explSolsList.size());
+                System.out.println("Solution was not improved ; trying to improve generated solutions (loop " + i + " improving " + explSolsList.size() + " former sols)");
+                //System.out.println(i + " : " + explSolsList.size());
                 for(Solution s1 : explSolsList) { // boucle sur les solutions du coup précédent
                     stepValue = 1;
-                    ArrayList<Solution> neighbours = computeNeighbours(d,s1);
-                    //System.out.println("-->" + neighbours.size());
                     ArrayList<Solution> solList = new ArrayList<Solution>();
-                    for(Solution k : neighbours) {
-                        for(Solution l : modifyRates(d, k)) {
-                            solList.add(l);
+                    if(s1.objectiveValue == -1) {
+                        solList.add(s1);
+                    } else {
+                        ArrayList<Solution> neighbours = computeNeighbours(d,s1);
+                        //System.out.println("-->" + neighbours.size());
+                        for(Solution k : neighbours) {
+                            for(Solution l : modifyRates(d, k)) {
+                                solList.add(l);
+                            }
                         }
                     }
-                    //System.out.println(":" + solList.size());
+                    System.out.println("> Will iterate over " + solList.size());
                     for(Solution sol : solList) {
                         sol.objectiveValue = initVal*4; // Pour ne pas que le checker fail à cause de ça (car on a sûrement allongé la durée de l'évac en diminuant le débit)
                         sol.objectiveValue = (new Checker()).check(d,sol).endingEvacTime;
@@ -262,6 +322,7 @@ public class localSearchCalculations implements Runnable {
                             Solution compactedNewSol = findBest(d, sol);
                             int val = (new Checker()).check(d, compactedNewSol).endingEvacTime;
                             //explSolsList.add(compactedNewSol);
+                            compactedNewSol.objectiveValue = val;
                             if((val > 0) && (val <= bestValue)) {
                                 foundBest = true;
                                 bestSol = compactedNewSol;
@@ -274,21 +335,18 @@ public class localSearchCalculations implements Runnable {
                             }
                         }
                         else {
-                            //explSolsList.add(sol);
+                            explSolsListBis.add(sol);
                         } 
-                    }     
-                                            
+                    }                  
                 } 
             }
             explSolsList = explSolsListBis;
             //System.out.println(explSolsListBis.size());
-            i--;
+            i--;            
         }
         bestSol.objectiveValue = (new Checker()).check(d, bestSol).endingEvacTime;
-        if(debug >= 1) {
-            System.out.println("[THREAD" + index + "] " + "Explored " + nb + " rate diminutions.");
-            System.out.println("[THREAD" + index + "] " + "Best solution found at cost " + bestValue + "(explored  " + nb + " solutions)");     
-        }  
+        System.out.println("Explored " + nb + " rate diminutions.");
+        System.out.println("Best solution found at cost " + bestValue + "(explored  " + nb + " solutions)");       
         return bestSol;
     }
 
