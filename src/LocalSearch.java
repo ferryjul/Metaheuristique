@@ -502,6 +502,7 @@ public class LocalSearch {
         } else {
             bestSolutionComputed.other = "Solution generated without using multi-threading";
         }
+        bestSolutionComputed.instanceName = name;
         bestSolutionComputed.computeTime = (((Long)(endTime - startTime)).intValue())/1000;
         int test = solIO.write(bestSolutionComputed, "../Generated_best_solutions/" + name + dateFormat.format(date) );
         if (test==0)

@@ -68,7 +68,8 @@ public static void main(String[] args) {
         (new LocalSearch()).localSearch(TD_data, "exempleTD");
     }
     else {
-        String name = "sparse_10_30_3_1_I.full";
+        String inst = "sparse_10_30_3_1_I";
+        String name = inst + ".full";
         // String name = "medium_10_30_3_5_I.full";
         String fileData = "../InstancesInt/" + name;   
         /* On crée l'exemple du TD */
@@ -104,7 +105,7 @@ public static void main(String[] args) {
         Checker TD_checker2 = new Checker();
         TD_checker2.check(TD_data, supSol);
         //TD_checker.printState();
-        (new LocalSearch()).localSearch(TD_data, name);
+        (new LocalSearch()).localSearch(TD_data, inst);
     }
 
     }
