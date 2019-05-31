@@ -380,9 +380,9 @@ public class LocalSearch {
 
     public void localSearch(data d, String name) { // We will try to implement multi-start
         Long startTime = java.lang.System.currentTimeMillis();
-        int multiStartNbPoints = 100;
+        int multiStartNbPoints = 50;
         Boolean useMultiThreading = true;
-        int nbThreads = 4;
+        int nbThreads = 2;
         System.out.println("Generating multi start points...");
         ArrayList<Solution> starts = new ArrayList<Solution>();
         Solution s = computeInfSup.computeSupSolution(d);

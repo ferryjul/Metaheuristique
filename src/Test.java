@@ -68,8 +68,8 @@ public static void main(String[] args) {
         (new LocalSearch()).localSearch(TD_data, "ExempleSimple");
     }
     else {
-        String inst = "sparse_10_30_3_1_I";
-        //String inst = "dense_10_30_3_1_I";
+        //String inst = "sparse_10_30_3_1_I";
+        String inst = "medium_10_30_3_1_I";
         String name = inst + ".full";
         // String name = "medium_10_30_3_5_I.full";
         String fileData = "../InstancesInt/" + name;   
