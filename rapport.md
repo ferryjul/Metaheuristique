@@ -1,4 +1,4 @@
-RAPPORT DE PROJET
+RAPPORT DE PROJET - METAHEURISTIQUES
 ============
 ###Julien Ferry
 ###Quentin Genoud
@@ -7,7 +7,7 @@ RAPPORT DE PROJET
 
 # Introduction
 
-# Vérifications des solutions
+# Vérification des solutions
 
 ##Algorithme du checker 
 
@@ -15,68 +15,53 @@ L'algorithme fonctionne en 2 temps. On va d'abord simuler l'évacuation en calcu
 En ce faisant, on vérifie le respect des contraintes de capacité de chaque arc (ou ressource) et la réalisation de la fonction objectif. 
 Dans un second temps, en utilisant la matrice remplie précédemment, on vérifie le respect des due date de chaque arc, en vérifiant que chaque arc ne soit plus utilisé après sa due date.
 
-Tout d'abord, voici les **abréviations** utilisées :
+Le pseudo-code de notre checker est ci-après.
+On notera les éléments suivants :
+- `s.objectiveValue` : valeur de la fonction objectif (ie. temps total d'évacuation) pour la solution s
+- `d.capacity(e)` est une fonction renvoyant la capacité de l'arc e dans l'instance de données d
+- `d.length(e)` est une fonction renvoyant le temps de parcours de l'arc e dans l'instance de données d
+- `s.startEvacuationDate(n)` est une fonction renvoyant la date de début d'évacuation du noeud n dans la solution s
+- `s.evacuationRate(n)` est une fonction renvoyant le débit d'évacuation du noeud n dans la solution s
+- `s.evacuationPath(n)` est une fonction renvoyant la liste (dans l'ordre de parcours) des arcs du chemin d'évacuation du noeud n dans la solution s
+- `edgesData[t][e]` représente la capacité restante pour l'arc (la ressource) e au temps t.
+![Algorithme de notre checker (pseudocode)\label{IRTex}](images/algo_checker.png)
+
+Voici les **notations** utilisées :
 
 - **T** = nombre d'unités de temps de la fonction objectif
 - **E** = nombre d'arcs dans le graphe des routes d'évacuations
 - **L** = longueur maximale d'un chemin d'évacuation
 - **N** = nombre de sommets à évacuer
-- **P** = nombre maximal de paquets de personnes devant quitter un sommet . 
+- **P** = nombre maximal de paquets de personnes devant quitter un sommet
 
-Dans le cas général P(s) = ( (#personnes en s à t = 0) / (flot max d'évacuation de s) )
-Pour rester dans le cas général on peut poser (dans le pire des cas) : P = nombre max de personnes sur un sommet (mais c'est une approximation très défavorable)
-
-Soit edgesData, une matrice de la taille (T)*(E).
-
-edgeData[t][e] représente la capacité restante pour l'arc (la ressource) e au temps t.
-
-**Init** : (O(T*E))
-Pour chaque case de edgesData mettre la capacité initiale de l'arc concerné
-
-**Vérification de la contraine de capacité :** (O(N*P*L))
-Pour chaque sommet s à évacuer :
-	tInit <- début de l'évacuation de s
-	Tant qu'il reste des gens à évacuer en s :
-		t <- tInit
-		Pour chaque arc e du chemin d'évacuation de s :
-			si t > valeur de la fonction objectif alors solution invalide finsi (1)
-			edgesData[t][e] -= nombre de personne du paquet évacué
-			si edgesData[t][e] < 0 alors Solution invalide finsi (2)
-			t += durée de parcours de e
-		finPour
-		tInit++
-	fintantque
-finpour
-		
-**Vérification de la contrainte des Due Date :** (O(E*T))
-Pour chaque arc e du graphe :
-	pour i allant de (date d'expiration de e) à (valeur de la fonction objectif) 
-		si edgesData[i][e] != capacité de e
-			alors solution invalide (3)
-		finsi
-	finpour
-finpour
-
-**(1)** La solution ne permet pas d'évacuer tout le monde en respectant la valeur voulue de la fonction objectif.
-
-**(2)** La solution ne respecte pas les contraintes de capacité de chaque arc (ou ressource).
-
-**(3)** La solution ne respecte pas les due date : des gens entrent encore sur un arc après sa date d'expiration.
+**Analyse de complexité :**
 
 
-- illustration par l'exemple (optionnel)
-- complexité de l'algo
-- intêret de cette méthode de vérification pour le problème étudié
+* Initialisation (lignes 1 à 5) : `(O(T*E))`
+*On remplit la matrice des capacités disponibles pour chaque unité de temps, pour chaque arc à sa valeur de capacité.*
 
+* Vérification de la contrainte de capacité (lignes 6 à 24) : `(O(N*P*L))`
+*On simule l'évacuation. Pour chaque noeud à évacuer, on simule le trajet de chaque paquet le long du chemin d'évacuation correspondant et on met à jour les capacités disponibles pour les arcs traversés aux unités de temps adéquates.*
+*Remarque : Si on voulait prendre en compte le fait que le dernier paquet de personnes à évacuer un noeud peut comprendre un nombre de personne inférieur au débit initial, on remplacerait la ligne 15 `edgesData[t][e] <= edgesData[t][e] - s.evacuationRate(aNode)`par  `edgesData[t][e] <= edgesData[t][e] - remainPeople`. Ceci pourrait permettre d'obtenir de meilleures valeurs de la fonction objectif dans certains cas. Néanmoins, le sujet spécifie que le débit d'évacuation reste constant quoi qu'il arrive, par conséquent notre algorithme respecte cette contrainte.*
 
+* Vérification de la contrainte des Due Dates (lignes 25 à 31) : `(O(T*E))`
+*On vérifie qu'aucun arc n'est utilisé après sa due date. Bien que la complexité soit la même que pour la phase d'initialisation, on ne parcourt en réalité pas l'intégralité de la matrice, puisque pour chaque arc, on ne s'intéresse qu'aux unités de temps situées après sa due date.*
+
+**Détection d'erreurs :**
+
+* ligne 13 : Cas où la solution ne permet pas d'évacuer tout le monde en respectant la valeur voulue de la fonction objectif.
+
+* ligne 18 : Cas où la solution ne respecte pas les contraintes de capacité de chaque arc (ou ressource).
+
+* ligne 28 : Cas où la solution ne respecte pas les due date : des gens entrent encore sur un arc après sa date d'expiration.
 
 # Calculs de borne inférieure et supérieure
 
 ## 1) Borne inférieure
 
 Le problème à résoudre est un problème de minimisation, donc la borne inférieure est une valeur de la fonction objectif telle que la "vraie" valeur ne lui sera jamais inférieure (i.e. la solution réalisable ne sera jamais meilleure).
-La borne inférieure que nous avons retenue est la suivante : c'est le maximum des temps d'évacuation des tronçons. On considère que les secteurs peuvent être évacués simultanément, le temps total est donc le temps de l'évacuation la plus longue, c'est le meilleur des cas.
-
+La borne inférieure que nous avons retenue est la suivante : c'est le maximum des temps d'évacuation des tronçons. On considère donc que les secteurs peuvent tous être évacués simultanément à leur taux d'évacuation maximum, le temps total est donc la durée de l'évacuation la plus longue, c'est le meilleur des cas.
+NB : On pourrait générer la solution correspondante
 - algo
 - illustration par l'exemple (optionnel)
 - complexité de l'algo
@@ -145,26 +130,45 @@ présentation de résultats sur différentes instances (tableau voir graphique (
 En conclusion, lors de notre cycle d'intensification, la seule opération impossible sur la solution de départ est l'augmentation des dates de départ. En particulier, si une évacuation débute à t=0, alors ce sera toujours le cas dans les solutions explorées par notre cycle d'évacuation. C'est donc notamment sur cet aspect que nous avons axé notre processus de diversification.
 
 # Diversification
-<<<<<<< Updated upstream
 
-Tout d'abord, il faut noter que la condition d'arrêt du cycle complet d'intensification (voir la partie précédente) s'arrête lorsque l'on arrive pas à obtenir une meilleure solution. Mais on peut s'autoriser à itérer un certain nombre de fois supplémentaires (modifiable) avant l'arrêt même lorsqu'on arrive pas à trouver une meilleur solution de suite. 
+Notre cycle d'intensification d'arrête normalement lorsqu'à l'issue d'une itération, aucune meilleure solution n'a pu être générée. Nous avons toutefois intégré un mécanisme de diversification à cette condition : on autorise le programme à itérer un certains nombre de fois supplémentaires (paramétrable) même si la solution n'a pas été améliorée, en utilisant la meilleure solution de l'étape qui n'a pas permis d'amélioration. Ce paramètre permet donc de ressortir, dans certains cas, d'un minimum local.
 
 Ensuite, le processus de diversification que nous avons choisi d'appliquer est le **multi-start**. Cela consiste tout simplement à choisir plusieurs ordres d'évacuation différents, à tous les explorer et à choisir le meilleur des résultats à la fin. On choisit en fait un ordre d'évacuation des secteurs de départ totalement aléatoire (par exemple, ordre 1 d'évacuation des secteurs : 1->2->3->4, ordre 2 : 3->1->4->2 ...).
-On peut choisir le nombre de séquence d'évacuations différentes que l'on veut explorer. Comme les séquences générées sont aléatoires, on peut donc tomber sur 2 ordres identiques mais si le nombre de noeuds de départs différents est important ça devient très rare. 
-Le problème du multi-start, c'est que l'on applique notre cycle d'intensification autant de fois que le nombre de séquences d'évacuations différentes que l'on souhaite explorer. Cela peut donc prendre pas mal de temps surtout sur les instances les plus volumineuses. Pour améliorer la vitesse d'éxecution de notre algorithme, on a décidé de pouvoir utiliser différents threads pour pouvoir paralléliser les calculs des différentes solutions lorsqu'on utilise le multi-start. On peut désactiver cette fonctionnalité simplement avec un paramètre et on peut même choisir le nombre de threads qui tournent en simultanés.
+On peut choisir le nombre de séquence d'évacuations différentes que l'on veut explorer. Comme les séquences générées sont aléatoires, on peut donc tomber sur 2 ordres identiques mais si le nombre de noeuds de départs différents est important ce scénario devient très rare. 
+Le problème du multi-start, c'est que l'on applique notre cycle d'intensification sur chaque séquence d'évacuation générée aléatoirement. La durée totale d'exécution peut donc être conséquente pour les instances les plus volumineuses, quand le nombre de points de départ multi-start est élevé. Pour améliorer la vitesse d'éxecution de notre algorithme,nous avons décidé de pouvoir utiliser différents threads pour pouvoir paralléliser les calculs des différentes solutions lorsqu'on utilise le multi-start. On peut désactiver cette fonctionnalité simplement avec un paramètre et on peut même choisir le nombre de threads qui tournent en simultané. Lorsqu'un thread a fini son travail et retourné la solution trouvée, le programme principal en lance un nouveau s'il reste des séquences d'évacuation à développer.
 
-Tableau de résultats
-=======
- La condition d'arrêt du cycle complet d'intensification => on trouve pas de meilleurs solution, on s'autorise à itérer un certains nombre de fois (paramètrable) avant l'arrêt.
 
-# Perforormances
+# Performances
 
-Cette section présente les résultats obtenus pour 4 instances du problème : l'exemple simple du TD, une instance "sparse", une "medium", et une "dense". Pour chacune de ces instances, nous présentons le temps total de calcul, la valeur de la fonction objectif pour la solution obtenue, pour :
+Cette section présente les résultats obtenus pour 4 instances du problème : l'exemple simple du TD, une instance "sparse", et une instance "dense". Pour chacune de ces instances, nous présentons le temps total de calcul, la valeur de la fonction objectif pour la solution obtenue, pour :
 - un cycle d'intensification sans diversification : pas de multi-start et on s'arrête dès qu'on atteint un minimum local
 - notre recherche locale (diversification et intensification) pour différents nombres de points de départ multi-start
 
+NB : 
+- Toutes les mesures présentées dans le tableau ci-dessous ont été effectuées sur un ordinateur équipé d'un processeur Intel Core i7 3612-QM et de 8 Go de RAM. Notre programme utilise ici, au maximum, quatre threads en simultané pour s'exécuter. 
+- Les valeurs données dans ce tableau peuvent évidemment varier d'une exécution à l'autre, puisque les séquences d'évacuation à explorer sont générées aléatoirement.
 
->>>>>>> Stashed changes
+| Instance         	| Diversification (Oui/Non) 	| Nombre de points de départ (multi-start) 	| Nombre d'arcs du graphe 	| Nombre de noeuds du graphe 	| Borne sup 	| Borne inf (heuristique) 	| Instant de fin d'évacuation 	| Durée totale d'exécution de la recherche locale (en secondes) 	|
+|------------------	|---------------------------	|------------------------------------------	|-------------------------	|----------------------------	|-----------	|-------------------------	|-----------------------------	|---------------------------------------------------------------	|
+| Exemple du TD    	| Non                       	| N/A                                      	| 8                       	| 7                          	| 94        	| 34                      	| 37                          	| < 1                                                           	|
+| Exemple du TD    	| Oui                       	| 5                                        	| 8                       	| 7                          	| 94        	| 34                      	| 37                          	| < 1                                                           	|
+| Exemple du TD    	| Oui                       	| 20                                       	| 8                       	| 7                          	| 94        	| 34                      	| 37                          	| < 1                                                           	|
+| Exemple du TD    	| Oui                       	| 100                                      	| 8                       	| 7                          	| 94        	| 34                      	| 37                          	| < 1                                                           	|
+| dense_10_30_3_1  	| Non                       	| N/A                                      	| 930                     	| 549                        	| 617       	| 91                      	| 184                         	| 23                                                            	|
+| dense_10_30_3_1  	| Oui                       	| 5                                        	| 930                     	| 549                        	| 617       	| 91                      	| 180                         	| 118                                                           	|
+| dense_10_30_3_1  	| Oui                       	| 20                                       	| 930                     	| 549                        	| 617       	| 91                      	| 180                         	| 421                                                           	|
+| dense_10_30_3_1  	| Oui                       	| 100                                      	| 930                     	| 549                        	| 617       	| 91                      	| 180                         	| 2291                                                          	|
+| sparse_10_30_3_1 	| Non                       	| N/A                                      	| 472                     	| 280                        	| 602       	| 111                     	| 161                         	| 12                                                            	|
+| sparse_10_30_3_1 	| Oui                       	| 5                                        	| 472                     	| 280                        	| 602       	| 111                     	| 145                         	| 26                                                            	|
+| sparse_10_30_3_1 	| Oui                       	| 20                                       	| 472                     	| 280                        	| 602       	| 111                     	| 134                         	| 88                                                            	|
+| sparse_10_30_3_1 	| Oui                       	| 100                                      	| 472                     	| 280                        	| 602       	| 111                     	| 132                         	| 540                                                           	|
+
+** Analyse des résultats obtenus : **
+
+On note logiquement que la durée d'exécution augmente environ linérairement avec la nombre de points de multi-start.
+On peut voir que de manière générale, l'augmentation du nombre de points de multi-start conduit à une amélioration de la fonction objectif. Néanmoins, ce n'est pas toujours le cas, ceci étant dû à deux facteurs :
+- les ordres d'évacuation sont générés aléatoirement
+- lorsque le nombre de points de multi-start devient très grand, il est probable qu'on ne teste plus de nouvelles permutations (cas de l'exemple du TD pour de grands nombres de points de départ)
 
 # Conclusion
 

@@ -1,0 +1,60 @@
+\documentclass{article}
+\usepackage{algorithm,algorithmic, algpseudocode, amsmath}
+
+\algnewcommand\algorithmicinput{\textbf{Input:}}
+\algnewcommand\algorithmicoutput{\textbf{Output:}}
+\algnewcommand\algorithmicglobalvariable{\textbf{Global Variable:}}
+
+\algnewcommand\Input{\item[\algorithmicinput]}%
+\algnewcommand\Output{\item[\algorithmicoutput]}%
+\algnewcommand\GlobalVariables{\item[\algorithmicglobalvariable]}%
+
+\begin{document}
+
+\begin{algorithm} % enter the algorithm environment
+\caption{Checker} % give the algorithm a caption
+\label{alg1} % and a label for \ref{} commands later in the document
+\begin{algorithmic}[1] % enter the algorithmic environment
+    \GlobalVariables edgesData: matrix[s.objectiveValue][E]
+    \Input d : Data, s : Solution
+    \Output boolean representing the correctness of s for dataset d
+
+    \Function{Check}{\var{d,s}}
+    \FOR{int t in 0..s.objectiveValue} 
+    \FOR{edge e in 0..E}
+        \STATE $edgesData[t][e] \Leftarrow d.capacity(e)$
+    \ENDFOR
+    \ENDFOR
+    
+    \FORALL{node $aNode$ to be evacuated}
+        \STATE $tInit \Leftarrow s.startEvacuationDate(aNode)$
+        \STATE $remainPeople \Leftarrow s.PeopleToBeEvacuated(aNode)$
+        \WHILE{$remainPeople > 0$}
+            \STATE $t \Leftarrow tInit$
+             \FORALL{edge $e \in s.evacuationPath(aNode)$}
+                \IF{$t > s.objectiveValue$}
+                    \RETURN false
+                \ENDIF
+                 \STATE $edgesData[t][e] \Leftarrow edgesData[t][e] - s.evacuationRate(aNode)$
+                 \STATE $remainPeople \Leftarrow remainPeople - s.evacuationRate(aNode)$
+                 \IF{$edgesData[t][e] < 0$}
+                    \RETURN false
+                \ENDIF
+                 \STATE $t \Leftarrow t + d.length(e)$
+             \ENDFOR
+              \STATE $tInit \Leftarrow tInit + 1$
+        \ENDWHILE
+    \ENDFOR
+    
+    \FOR{edge e in 0..E}
+        \FOR{t in dueDate(e)..s.objectiveValue}
+            \IF{$edgesData[t][e] \neq d.capacity(e)$}
+                \RETURN false
+            \ENDIF
+        \ENDFOR
+    \ENDFOR
+    \RETURN false
+    \endFunction
+\end{algorithmic}
+\end{algorithm}
+\end{document}
