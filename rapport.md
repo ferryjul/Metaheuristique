@@ -123,7 +123,15 @@ Cycle **d'augmentation des débits** : Part d'un solution et on essaye d'augment
 présentation de résultats sur différentes instances (tableau voir graphique (optionnel))
 
 # Diversification
- La condition d'arrêt du cycle complet d'intensification => on trouve pas de meilleurs solution, on s'autorise à itérer un certains nombre de fois (paramètrable) avant l'arrêt.
+
+Tout d'abord, il faut noter que la condition d'arrêt du cycle complet d'intensification (voir la partie précédente) s'arrête lorsque l'on arrive pas à obtenir une meilleure solution. Mais on peut s'autoriser à itérer un certain nombre de fois supplémentaires (modifiable) avant l'arrêt même lorsqu'on arrive pas à trouver une meilleur solution de suite. 
+
+Ensuite, le processus de diversification que nous avons choisi d'appliquer est le **multi-start**. Cela consiste tout simplement à choisir plusieurs ordres d'évacuation différents, à tous les explorer et à choisir le meilleur des résultats à la fin. On choisit en fait un ordre d'évacuation des secteurs de départ totalement aléatoire (par exemple, ordre 1 d'évacuation des secteurs : 1->2->3->4, ordre 2 : 3->1->4->2 ...).
+On peut choisir le nombre de séquence d'évacuations différentes que l'on veut explorer. Comme les séquences générées sont aléatoires, on peut donc tomber sur 2 ordres identiques mais si le nombre de noeuds de départs différents est important ça devient très rare. 
+Le problème du multi-start, c'est que l'on applique notre cycle d'intensification autant de fois que le nombre de séquences d'évacuations différentes que l'on souhaite explorer. Cela peut donc prendre pas mal de temps surtout sur les instances les plus volumineuses. Pour améliorer la vitesse d'éxecution de notre algorithme, on a décidé de pouvoir utiliser différents threads pour pouvoir paralléliser les calculs des différentes solutions lorsqu'on utilise le multi-start. On peut désactiver cette fonctionnalité simplement avec un paramètre et on peut même choisir le nombre de threads qui tournent en simultanés.
+
+Tableau de résultats
+
 # Conclusion
 
 # Référence
