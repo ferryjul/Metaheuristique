@@ -1,4 +1,4 @@
-# Metaheuristique - Projet de Julien Ferry et Quentin Genoud (INSA - 4ème année IR)
+# Metaheuristiques - Projet de Julien Ferry et Quentin Genoud (INSA - 4ème année IR)
 
 Pour compiler : 
 >javac *.java
