@@ -107,25 +107,23 @@ Les voisinages choisis sont
 
 ## Algorithme d'intensification
 //préciser, conditions d'arrêts, exploration des voisinages, plusieurs fonction d'évaluation ?
-On alterne des cycles de compactage c'e
 
 Notre intensification se déroule comme ci dessous :
 On part de la **bonne supérieure** puis on effectue les cycles ci-dessous:
 **Compactage** -> **Réduction des débits** ->**Compactage** -> **Augmentation des débits** -> **Compactage**
 
-Cycle de **compactage** : On essaye de faire partir chaque groupe associé à un site de départ le plus tôt possible. Quand on arrive pas à diminuer la date de départ de l'un des sites (car on obtient pas une solution valide pour le checker), on essaye de diminuer la date de départ d'un autre site. On répète cela jusqu'à ce que l'on ne puisse plus du tout diminuer la date de départ de tous les sites (on réessaye les sites auquel on déjà diminuer la date de départ antérieurement) ou quand les dates de départ de chaque site sont t=0.
+Cycle de **compactage** : On essaye de faire partir chaque groupe associé à un site de départ le plus tôt possible. Quand on arrive pas à diminuer la date de départ de l'un des sites (car on obtient pas une solution valide pour le checker), on essaye de diminuer la date de départ d'un autre site. On répète cela jusqu'à ce que l'on ne puisse plus du tout diminuer la date de départ de tous les sites sans obtenir de solution valide (on réessaye les sites auquel on déjà diminuer la date de départ antérieurement) ou quand les dates de départ de chaque site sont t=0.
 
-Cycle de **réduction des débits** : On diminue la taille des débits (paquets de personne) de chaque site de départs (chaque site individuellement).
+Cycle de **réduction des débits** : On diminue la taille des débits (paquets de personnes) de certains sites de départ. Pour ce faire, on détermine les tronçons limitants puis on détermine les secteurs qui entrent en conflit sur ces tronçons. On diminue ensuite progressivement le débit de chaque secteurs en conflit individuellement (on obtient plusieurs solutions différentes). On fait aussi une solution où l'on diminue le débit de manière équivalente entre tous les secteurs en conflits. Si la solution obtenue est invalide, on stoppe la diminution du débit immédiatement pour le secteur en question sinon on continue. Une fois des solutions invalides atteintes pour tous les secteurs, on conserve la plus forte diminution pour chaque secteur (on a donc autant de solutions qu'il y avait de secteurs en conflits plus la solution où l'on réparti la diminution du débit sur tous les secteurs équitablement). On effectue un nouveau cycle de compression et on garde la meilleure de toutes les solutions (si il y en a plusieurs, on garde la première générée).
 
-Cycle **d'augmentation des débits** : On restaure les débits à leur valeur initiale avant réduction 
+Remaque : réduire le débit d'évacuation, entraîne une augmentation de la durée d'évacuation pour le noeud concerné. C'est pourquoi nous calculons la valeur exacte, en unité de temps de cette augmentation et nous retardons les évacuations suivantes d'autant.
 
-jusqu'à ne plus trouver de meilleure solution OU 
-jusqu'à ce qu'un compteur atteigne 0 (ie on autorise des itérations au cours desquelles on n'améliore pas la valeur de la fonction objectif)
+Cycle **d'augmentation des débits** : Part d'un solution et on essaye d'augmenter les débits sur tous les arcs jusqu'à que les solutions deviennent invalides (capacité des arcs dépassés par exemple). Une fois cela fait un refait un cycle de compression car il est possible que cela puisse améliorer notre solution.
 
 présentation de résultats sur différentes instances (tableau voir graphique (optionnel))
 
 # Diversification
-
+ La condition d'arrêt du cycle complet d'intensification => on trouve pas de meilleurs solution, on s'autorise à itérer un certains nombre de fois (paramètrable) avant l'arrêt.
 # Conclusion
 
 # Référence
