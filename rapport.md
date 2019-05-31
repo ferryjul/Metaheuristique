@@ -4,6 +4,7 @@ RAPPORT DE PROJET - METAHEURISTIQUES
 ###Quentin Genoud
 ###4IR-A
 
+Lien vers le repository Git : https://github.com/jujudu121212/Metaheuristique
 
 # Introduction
 
@@ -20,32 +21,36 @@ On notera les éléments suivants :
 - `s.objectiveValue` : valeur de la fonction objectif (ie. temps total d'évacuation) pour la solution s
 - `d.capacity(e)` est une fonction renvoyant la capacité de l'arc e dans l'instance de données d
 - `d.length(e)` est une fonction renvoyant le temps de parcours de l'arc e dans l'instance de données d
+- `d.PeopleToBeEvacuated(n)` est une fonction renvoyant le nombre de personnes à évacuer depuis le sommet n dans l'instance de données d
+- `d.evacuationPath(n)` est une fonction renvoyant la liste (dans l'ordre de parcours) des arcs du chemin d'évacuation du noeud n dans l'instance de données d
 - `s.startEvacuationDate(n)` est une fonction renvoyant la date de début d'évacuation du noeud n dans la solution s
 - `s.evacuationRate(n)` est une fonction renvoyant le débit d'évacuation du noeud n dans la solution s
-- `s.evacuationPath(n)` est une fonction renvoyant la liste (dans l'ordre de parcours) des arcs du chemin d'évacuation du noeud n dans la solution s
 - `edgesData[t][e]` représente la capacité restante pour l'arc (la ressource) e au temps t.
-![Algorithme de notre checker (pseudocode)\label{IRTex}](images/algo_checker.png)
+
+![Pseudo-code of our checker algorithm](/home/julien/metaheuristique/Metaheuristique/images/algo_checker.png) 
 
 Voici les **notations** utilisées :
 
 - **T** = nombre d'unités de temps de la fonction objectif
 - **E** = nombre d'arcs dans le graphe des routes d'évacuations
-- **L** = longueur maximale d'un chemin d'évacuation
+- **L** = longueur maximale d'un chemin d'évacuation (dans le pire cas, c'est à dire celui où chaque chemin d'évacuation utilise (presque) chaque arc, **L** se rapproche de **E**)
 - **N** = nombre de sommets à évacuer
 - **P** = nombre maximal de paquets de personnes devant quitter un sommet
 
 **Analyse de complexité :**
 
 
-* Initialisation (lignes 1 à 5) : `(O(T*E))`
+* Initialisation (lignes 1 à 5) : `O(T*E)`
 *On remplit la matrice des capacités disponibles pour chaque unité de temps, pour chaque arc à sa valeur de capacité.*
 
-* Vérification de la contrainte de capacité (lignes 6 à 24) : `(O(N*P*L))`
+* Vérification de la contrainte de capacité (lignes 6 à 24) : `O(N*P*L)`
 *On simule l'évacuation. Pour chaque noeud à évacuer, on simule le trajet de chaque paquet le long du chemin d'évacuation correspondant et on met à jour les capacités disponibles pour les arcs traversés aux unités de temps adéquates.*
 *Remarque : Si on voulait prendre en compte le fait que le dernier paquet de personnes à évacuer un noeud peut comprendre un nombre de personne inférieur au débit initial, on remplacerait la ligne 15 `edgesData[t][e] <= edgesData[t][e] - s.evacuationRate(aNode)`par  `edgesData[t][e] <= edgesData[t][e] - remainPeople`. Ceci pourrait permettre d'obtenir de meilleures valeurs de la fonction objectif dans certains cas. Néanmoins, le sujet spécifie que le débit d'évacuation reste constant quoi qu'il arrive, par conséquent notre algorithme respecte cette contrainte.*
 
-* Vérification de la contrainte des Due Dates (lignes 25 à 31) : `(O(T*E))`
+* Vérification de la contrainte des Due Dates (lignes 25 à 31) : `O(T*E)`
 *On vérifie qu'aucun arc n'est utilisé après sa due date. Bien que la complexité soit la même que pour la phase d'initialisation, on ne parcourt en réalité pas l'intégralité de la matrice, puisque pour chaque arc, on ne s'intéresse qu'aux unités de temps situées après sa due date.*
+
+**Complexité totale:** `O((N*P*L) + (T*E))`
 
 **Détection d'erreurs :**
 
@@ -61,33 +66,73 @@ Voici les **notations** utilisées :
 
 Le problème à résoudre est un problème de minimisation, donc la borne inférieure est une valeur de la fonction objectif telle que la "vraie" valeur ne lui sera jamais inférieure (i.e. la solution réalisable ne sera jamais meilleure).
 La borne inférieure que nous avons retenue est la suivante : c'est le maximum des temps d'évacuation des tronçons. On considère donc que les secteurs peuvent tous être évacués simultanément à leur taux d'évacuation maximum, le temps total est donc la durée de l'évacuation la plus longue, c'est le meilleur des cas.
-NB : On pourrait générer la solution correspondante
-- algo
-- illustration par l'exemple (optionnel)
-- complexité de l'algo
-- résultats cohérents ?
 
+NB : On pourrait générer la solution correspondante et faire tourner notre Checker dessus (ce dernier pouvant, si on l'appelle d'une certaine manière, déterminer lui-même la valeur de la fonction objectif), mais la complexité algorithmique serait plus importante. Ce sont uniquement les valeurs qui nous intéressent ici, et c'est donc uniquement elles que nous allons calculer.
 
+On notera les éléments suivants :
+- `d.capacity(e)` est une fonction renvoyant la capacité de l'arc e dans l'instance de données d
+- `d.length(e)` est une fonction renvoyant le temps de parcours de l'arc e dans l'instance de données d
+- `d.PeopleToBeEvacuated(n)` est une fonction renvoyant le nombre de personnes à évacuer depuis le sommet n dans l'instance de données d
+- `d.evacuationPath(n)` est une fonction renvoyant la liste (dans l'ordre de parcours) des arcs du chemin d'évacuation du noeud n dans l'instance de données d
+- `min(L)` retourne le plus petit des éléments de la liste d'entiers non triée L.
+- `add(L,k)` ajoute l'élément k à la liste L
+
+![Pseudo-code of our lower bound calculation](/home/julien/metaheuristique/Metaheuristique/images/algo_inf.png) 
+
+Voici les **notations** utilisées :
+
+- **N** = nombre de sommets à évacuer
+- **L** = longueur maximale d'un chemin d'évacuation (dans le pire cas, c'est à dire celui où chaque chemin d'évacuation utilise (presque) chaque arc, **L** se rapproche de **E**)
+
+** Analyse de complexité : **
+
+- Calcul des durées d'évacuation pour chaque sommet à évacuer : *fonction computeEvacTimes(Data d) (lignes 0 à 14)*
+*Pour chaque sommet à évacuer, on parcourt le chemin d'évacuation qui lui est associé. La complexité est donc* `O(N*L)`
+- Recherche du minimum des éléments d'une liste de `N` entiers non triés : `O(N)`
+
+**Complexité totale:** `O(N*L)`
+
+*Les valeurs calculées pour certaines instances sont présentées dans notre tableau récapitulatif en fin de rapport.*
 
 ## 2) Borne supérieure
 
 Une borne supérieure est une valeur de la fonction objectif telle que la valeur optimale de la fonction objectif ne lui sera pas supérieure (i.e. la solution idéale sera forcément meilleure) et la solution générée doit être réalisable.
-Notre borne supérieure est la somme d'évacuation de chaque noeud à évacuer individuellement. On considère que les secteurs sont évacués chacun à leur tour et qu'un secteur ne peut pas commencer à évacuer tant que le secteur en cours d'évacuation n'a pas fini d'évacuer tous ses habitants jusqu'au sommet sécurisé.
-Cette méthode génère donc bien une borne supérieure, dont il est facile de prouver la validité, mais dont la valeur de la fonction objectif est assez grossière. Une méthode plus fine pourrait permettre de paralléliser les évacuations dont les chemins n'ont aucun arc en commun.
+Notre borne supérieure est la somme des durées d'évacuation d'évacuation de chaque noeud à évacuer individuellement. On considère que les secteurs sont évacués chacun à leur tour et qu'un secteur ne peut pas commencer à évacuer tant que le secteur en cours d'évacuation n'a pas entièrement fini d'évacuer tous ses occupants jusqu'au sommet sécurisé.
+Cette méthode génère donc bien une borne supérieure, dont il est facile de prouver la validité, mais dont la valeur de la fonction objectif est assez grossière. Une méthode plus fine pourrait par exemple permettre de paralléliser les évacuations dont les chemins n'ont aucun arc en commun.
 
-- algo
-- illustration par l'exemple (optionnel)
-- complexité de l'algo
-- résultats cohérents ?
+NB : On pourrait générer la solution correspondante et faire tourner notre Checker dessus (ce dernier pouvant, si on l'appelle d'une certaine manière, déterminer lui-même la valeur de la fonction objectif), mais la complexité algorithmique serait plus importante. Ce sont uniquement les valeurs qui nous intéressent ici, et c'est donc uniquement elles que nous allons calculer.
 
-## Tableau de résultats (complété par graphiques)
+On notera les éléments suivants :
+- `d.capacity(e)` est une fonction renvoyant la capacité de l'arc e dans l'instance de données d
+- `d.length(e)` est une fonction renvoyant le temps de parcours de l'arc e dans l'instance de données d
+- `d.PeopleToBeEvacuated(n)` est une fonction renvoyant le nombre de personnes à évacuer depuis le sommet n dans l'instance de données d
+- `d.evacuationPath(n)` est une fonction renvoyant la liste (dans l'ordre de parcours) des arcs du chemin d'évacuation du noeud n dans l'instance de données d
+- `sum(L)` retourne la somme des éléments de la liste d'entiers L.
+- `add(L,k)` ajoute l'élément k à la liste L
+
+![Pseudo-code of our upper bound calculation](/home/julien/metaheuristique/Metaheuristique/images/algo_sup.png) 
+
+Voici les **notations** utilisées :
+
+- **N** = nombre de sommets à évacuer
+- **L** = longueur maximale d'un chemin d'évacuation (dans le pire cas, c'est à dire celui où chaque chemin d'évacuation utilise (presque) chaque arc, **L** se rapproche de **E**)
+
+** Analyse de complexité : **
+
+- Calcul des durées d'évacuation pour chaque sommet à évacuer : *fonction computeEvacTimes(Data d) (lignes 0 à 14)*
+La fonction est la même que pour la calcul de la borne inférieure, la complexité aussi : `O(N*L)`
+- Somme des éléments d'une liste de `N` entiers : `O(N)`
+
+**Complexité totale:** `O(N*L)`
+
+*Les valeurs calculées pour certaines instances sont présentées dans notre tableau récapitulatif en fin de rapport.*
 
 # Intensification
 
 
 Notre cycle d'intensification se déroule comme ci dessous :
 On part d'une solution de départ valide, puis on effectue les étapes suivantes :
-**Compactage** -> **Réduction des débits** ->**Compactage** -> **Augmentation des débits** -> **Compactage**
+``Compactage -> Réduction des débits ->Compactage-> Augmentation des débits -> Compactage``
 
 ## Présentation des voisinages
 
@@ -105,7 +150,6 @@ Les différentes étapes de notre cycle d'intensification explorent différents 
 
 
 ## Méthodes d'exploration des voisinages
-//préciser, conditions d'arrêts, exploration des voisinages, plusieurs fonction d'évaluation ?
 
 Cycle de **compactage** : On essaye de faire partir chaque groupe associé à un site de départ le plus tôt possible. Quand il n'est pas possible de diminuer la date de départ de l'un des sites (car on obtient pas une solution valide pour le checker), on essaye de diminuer la date de départ d'un autre site. On répète cela jusqu'à ce que l'on ne puisse plus du tout diminuer la date de départ de tous les sites sans obtenir de solution valide ou quand les dates de départ de chaque site sont t=0. 
 *Note sur la performance : diminuer les dates d'évacuation unité de temps par unité de temps, et lancer une analyse du checker à chaque étape est bien sûr inconcevable d'un point de vue des performances. Aussi, nous calculons, au début du cycle, un facteur de diminution (égal initialement à la moitié de la valeur de la fonction objectif de la solution courante). Nous tentons de diminuer les dates d'évacuation de cette valeur. Lorsque ce n'est plus possible, nous divisons cette valeur par 2 et répétons le procédé jusqu'à ce qu'aucune solution ne soit possible et que le facteur de diminution soit égal à 1.*
@@ -174,4 +218,3 @@ On peut voir que de manière générale, l'augmentation du nombre de points de m
 
 ##Possibles améliorations
 Nous pourrions améliorer plusieurs étapes de notre algorithme. La principale amélioration possible concerne la fonction modifyRates. Cette fonction, qui prend en argument une solution invalide du point de vue des capacités, trouve la ressource limitante (c'est à dire l'arc sur lequel la contrainte de capacité n'est pas respectée), et génère plusieurs solutions en diminuant le débit d'évacuation des noeuds utilisant la ressource au moment du conflit. Bien que les évacuations suivant celle dont le débit est réduit soient décalées avant de compenser l'allongement de sa durée, cette méthode génère parfois des solutions invalides. En effet, l'allongement de la durée d'évacuation d'un noeud entraine une utilisation prolongée de toutes les ressources du chemin d'évacuation (et pas seulement de la ressource identifiée plus tôt). Il serait bien sûr possible de ne générer que des solutions faisables, soit par une analyse plus profonde des modifications à apporter, soit en décalant plus fortement les évacuations concourantes. Néanmoins, la première idée entrainerait un allongement conséquent de la durée d'exécution de modifyRates, tandis que la deuxième ralentirait le cycle de compactage suivant chacune des solutions générées. Pour des raisons de performances, nous avons donc choisi de conserver notre méthode, bien qu'elle génère parfois des solutions inexploitables.
-# Référence
