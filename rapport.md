@@ -60,6 +60,8 @@ Voici les **notations** utilisées :
 
 * ligne 28 : Cas où la solution ne respecte pas les due date : des gens entrent encore sur un arc après sa date d'expiration.
 
+*Note sur le format de retour du Checker : En réalité, notre implémentation du Checker retourne une structure contenant des informations utiles pour le procédé de recherche locale (par exemple si la contrainte de capacité est violée sur un arc, il indique quel est cet arc et quels noeuds d'évacuation l'utilisent à l'instant critique). Un booléen associé à chaque instance du Checker permet d'indiquer à ce dernier s'il doit remplir cette structure ou se contenter d'indiquer si la solution est correcte ou non.*
+
 # Calculs de borne inférieure et supérieure
 
 ## 1) Borne inférieure
@@ -98,7 +100,7 @@ Voici les **notations** utilisées :
 
 Une borne supérieure est une valeur de la fonction objectif telle que la valeur optimale de la fonction objectif ne lui sera pas supérieure (i.e. la solution idéale sera forcément meilleure) et la solution générée doit être réalisable.
 Notre borne supérieure est la somme des durées d'évacuation d'évacuation de chaque noeud à évacuer individuellement. On considère que les secteurs sont évacués chacun à leur tour et qu'un secteur ne peut pas commencer à évacuer tant que le secteur en cours d'évacuation n'a pas entièrement fini d'évacuer tous ses occupants jusqu'au sommet sécurisé.
-Cette méthode génère donc bien une borne supérieure, dont il est facile de prouver la validité, mais dont la valeur de la fonction objectif est assez grossière. Une méthode plus fine pourrait par exemple permettre de paralléliser les évacuations dont les chemins n'ont aucun arc en commun.
+Cette méthode génère donc bien une borne supérieure, dont il est facile de prouver la validité, mais dont la valeur de la fonction objectif est assez grossière. Une méthode plus fine pourrait par exemple permettre de paralléliser les évacuations dont les chemins n'ont aucun arc en commun. Il est important de noter que cette solution ne tient pas compte des contraintes de due date (qu'elle ne respecte par ailleurs pas dans le cas général).
 
 NB : On pourrait générer la solution correspondante et faire tourner notre Checker dessus (ce dernier pouvant, si on l'appelle d'une certaine manière, déterminer lui-même la valeur de la fonction objectif), mais la complexité algorithmique serait plus importante. Ce sont uniquement les valeurs qui nous intéressent ici, et c'est donc uniquement elles que nous allons calculer.
 
@@ -133,6 +135,7 @@ La fonction est la même que pour la calcul de la borne inférieure, la complexi
 Notre cycle d'intensification se déroule comme ci dessous :
 On part d'une solution de départ valide, puis on effectue les étapes suivantes :
 ``Compactage -> Réduction des débits ->Compactage-> Augmentation des débits -> Compactage``
+A chaque étape, on vérifie la valeur de la fonction objectif des solutions générées grâce à notre Checker, qui nous retourne une structure particulère contenant des informations utiles. Pour tenir compte des due date dans la recherche locale, il faut assigner une valeur particulière à une variable globale (voir section "Configuration de nos programmes").
 
 ## Présentation des voisinages
 
@@ -213,6 +216,35 @@ On note logiquement que la durée d'exécution augmente environ linérairement a
 On peut voir que de manière générale, l'augmentation du nombre de points de multi-start conduit à une amélioration de la fonction objectif. Néanmoins, ce n'est pas toujours le cas, ceci étant dû à deux facteurs :
 - les ordres d'évacuation sont générés aléatoirement
 - lorsque le nombre de points de multi-start devient très grand, il est probable qu'on ne teste plus de nouvelles permutations (cas de l'exemple du TD pour de grands nombres de points de départ)
+
+#Configuration de nos programmes
+
+Afin de rendre nos programmes facilement configurables, nous avons, pour plusieurs fichiers, mis en place plusieurs variables globales dont la modification permet de décider le comportement de nos algorithmes. Les variables les plus utiles sont présentées ici.
+
+* `int debug` : présente dans plusieurs de nos fichiers, cette variable peut prendre les valeurs suivantes :
+- 0 : pas d'affichage dans la console
+- 1 : affichage minimal dans la console
+- 2 : affichage de toutes les informations dans la console
+- 3 : affichage détaillé des informations dans la console
+
+* `Boolean checkDueDate` (fichier `Checker.java`) : indique à l'instance correspondante du Checker s'il doit vérifier la contrainte de due date des arcs ou non.
+
+* `Boolean respDueDates` (fichier `localSearch.java`) : S'il vaut vrai alors les solutions vont être générées en tenant compte de la contrainte de due date. Il est à noter que cette contrainte n'est vérifiée qu'après un cycle de compression, car les solutions que nous utilisons comme solutions initiales ne respectent en général pas ces contraintes. S'il vaut faux alors les solutions générées tiendront uniquement compte des contraintes de capacité.
+
+* `int multiStartNbPoints` (fichier `localSearch.java`) : indique le nombre de séquences aléatoires que le programme va générer. Pour la valeur 0, seule une solution sera générée et intensifiée : il s'agira donc d'intensification "pure".
+
+* `Boolean useMultiThreading` (fichier `localSearch.java`) : indique si les calculs doivent se faire ou non sur plusieurs threads.
+
+*  `int nbThreads` (fichier `localSearch.java`): dans le cas où l'utilisateur choisit d'utiliser le multithreading, indique le nombre maximum de threads qui peuvent s'exécuter en parallèle.
+
+**Pour utiliser nos programmes simplement :**
+Le fichier `Test.java` permet de lancer simplement la recherche locale sur une instance. Le calcul des valeurs d'une borne inférieure et d'une borne supérieure est également lancé par ce fichier.  Si `Boolean debug` vaut `true`, la recherche locale s'exécute pour l'exemple simple du TD. S'il faut `false`, alors l'instance résolue par la recherche locale est celle dont le nom est contenue dans la variable `String inst`. A noter que les instances doivent être contenues dans le répertoire `InstancesInt/` de notre repository, et que les fichiers générés le seront au format exigé, dans le dossier `Generated_best_solutions` sous le nom `nomInstanceAAAAMMJJHH:mm:ss` (où `AAAAMMJJHH:mm:ss` est la date de fin de l'exécution de notre recherche locale).
+
+Pour compiler : 
+>javac *.java
+
+Pour lancer la recherche locale : 
+>java Test
 
 # Conclusion
 
