@@ -6,9 +6,9 @@ Pour compiler :
 Pour lancer la recherche locale : 
 >java Test
 
-##Fonctions implémentant les fonctionalités requises
+## Fonctions implémentant les fonctionalités requises
 
-###Lecture d'un jeu de données
+### Lecture d'un jeu de données
 Un jeu de données est représenté par la classe `data`.
 La classe `dataReader` avec sa méthode `public data Convert_File_In_Data(String File_Name)` permet de lire un fichier de données pour créer une instance de `data`.
 
@@ -19,7 +19,7 @@ Pour lire le jeu de données "exemple.full" :
 Pour l'afficher dans la console :
 > d.read_data();
 
-###Lecture/écriture d'une solution
+### Lecture/écriture d'une solution
 Une solution est représentée par la classe `Solution`.
 La classe `SolutionIO` permet :
 - de lire un fichier solution avec sa méthode `public Solution read(String File_Name)`
@@ -34,7 +34,7 @@ Pour écrire dans le fichier "solutionécrite" la solution sol :
         if (test==0) { System.out.println("Fichier solution créé \n");}
         else { System.out.println("[ERROR] Fichier solution fail \n");}
 
-###Vérifieur de solutions
+### Vérifieur de solutions
 Le vérifieur de solution est implémenté par la classe `Checker`. Sa configuration (et notamment pour prendre en considération les due date des ressources) est expliquée plus en détails dans la section "Configuration de nos programmes".
 Il comporte deux constructeurs : 
 - `public Checker()` : le checker va uniquer vérifier la validité de la solution. Il va remplir uniquement le champ `objectiveValue` (valeur de la fonction objectif si la solution est valide, -1 sinon) de la classe `CheckerReturn`. Ceci permet d'éviter des itérations non nécessaires.
@@ -46,12 +46,12 @@ Pour vérifier la validité de la Solution sol pour le jeu de données d :
 > if(chR.objectiveValue != -1) { System.out.println("Solution valide !"); }
 > else { System.out.println("Solution invalide !"); }
 
-###Calculs des bornes inférieures et supérieures
+### Calculs des bornes inférieures et supérieures
 La classe `ComputeInfSup` implémente les calculs de bornes inférieures et supérieures.
 
 Les méthodes `public static int computeInf(data inData)` et `public static int computeSup(data inData)` permettent respectivement de calculer la valeur de la borne inférieure et supérieure des solutions pour le jeu de données inData, tandis que les méthodes `public static Solution computeInfSolution(data inData)` et `public static Solution computeSupSolution(data inData)` génèrent et retournent les solutions associées à ces valeurs.
 
-###Recherche locale
+### Recherche locale
 La classe `LocalSearch` contient les méthodes nécessaires à la recherche locale (intensification + diversification). Elle génère et enregistre les solutions trouvées. **Plusieurs options de configuration de notre recherche locale sont possibles, et expliquées dans la section suivante.** Elle affiche également des informations sur le déroulement du cycle, et, le cas échéant, sur les threads actifs.
 
 Pour lancer la recherche locale pour le jeu de données `d` (instance de la classe `data`), pour l'instance au nom "NomInstance" (paramètre utilisé pour la génération du nom du fichier solution) :
@@ -59,7 +59,7 @@ Pour lancer la recherche locale pour le jeu de données `d` (instance de la clas
 
 Si l'utilisateur fait le choix d'utiliser le multi-threading, les Threads seront créés automatiquement par `public void localSearch(data d, String name)` en instanciant la classe `localSearchCalculations`, qui contient les mêmes méthodes que `LocalSearch`, organisées pour respecter la structure de l'interface `Runnable`.
 
-##Configuration de nos programmes
+## Configuration de nos programmes
 Afin de rendre nos programmes facilement configurables, nous avons, pour plusieurs fichiers, mis en place plusieurs variables globales dont la modification permet de décider le comportement de nos algorithmes. Les variables les plus utiles sont présentées ici.
 
 * `int debug` : présente dans plusieurs de nos fichiers, cette variable peut prendre les valeurs suivantes :
@@ -78,6 +78,6 @@ Afin de rendre nos programmes facilement configurables, nous avons, pour plusieu
 
 * `int nbThreads` (fichier `localSearch.java`): dans le cas où l'utilisateur choisit d'utiliser le multithreading, indique le nombre maximum de threads qui peuvent s'exécuter en parallèle.
 
-##Utilisation rapide de nos programmes
+## Utilisation rapide de nos programmes
 **Pour utiliser nos programmes simplement :**
 Le fichier `Test.java` permet de lancer simplement la recherche locale sur une instance. Le calcul des valeurs d'une borne inférieure et d'une borne supérieure est également lancé par ce fichier.  Si `Boolean debug` vaut `true`, la recherche locale s'exécute pour l'exemple simple du TD. S'il faut `false`, alors l'instance résolue par la recherche locale est celle dont le nom est contenue dans la variable `String inst`. A noter que les instances doivent être contenues dans le répertoire `InstancesInt/` de notre repository, et que les fichiers générés le seront au format exigé, dans le dossier `Generated_best_solutions` sous le nom `nomInstanceAAAAMMJJHH:mm:ss` (où `AAAAMMJJHH:mm:ss` est la date de fin de l'exécution de notre recherche locale).
