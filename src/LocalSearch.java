@@ -174,7 +174,7 @@ public class LocalSearch {
                         bestSol.evacNodesList.put(anotherEvacNode, new EvacNodeData(bestSol.evacNodesList.get(anotherEvacNode).evacRate, bestSol.evacNodesList.get(anotherEvacNode).beginDate + factor));
                     }
                 }
-                if(factor < sol.objectiveValue) { // if generated solution is not too long (arbitrary measure)
+                if(factor < 2*sol.objectiveValue) { // if generated solution is not too long (arbitrary measure)
                     r.add(bestSol);
                 }
                 /* to be removed : many informations display */
@@ -234,7 +234,7 @@ public class LocalSearch {
             }
         }
         if(make) {
-            if(maxFactor < sol.objectiveValue) { // if generated solution is not too long (arbitrary measure)
+            if(maxFactor < 2*sol.objectiveValue) { // if generated solution is not too long (arbitrary measure)
                 r.add(bestSolAv);
             }
         }
@@ -380,7 +380,7 @@ public class LocalSearch {
 
     public void localSearch(data d, String name) { // We will try to implement multi-start
         Long startTime = java.lang.System.currentTimeMillis();
-        int multiStartNbPoints = 50;
+        int multiStartNbPoints = 1;
         Boolean useMultiThreading = true;
         int nbThreads = 2;
         System.out.println("Generating multi start points...");
@@ -525,7 +525,7 @@ public class LocalSearch {
         bestSolutionComputed.instanceName = name;
         bestSolutionComputed.computeTime = (((Long)(endTime - startTime)).intValue())/1000;
         //int test = solIO.write(bestSolutionComputed, "../Generated_best_solutions/" + name + dateFormat.format(date) );
-        int test = sortSolution.sortAndSaveSol(bestSolutionComputed, d, "../Generated_best_solutions/"+(name+dateFormat.format(date)));
+        int test = sortSolution.sortAndSaveSol(bestSolutionComputed, d, "../Generated_best_solutions/reportExamples/"+(name+dateFormat.format(date)));
         if (test==0)
         {
             System.out.println("Fichier solution créé \n");

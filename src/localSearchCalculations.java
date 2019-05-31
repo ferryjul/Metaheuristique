@@ -9,6 +9,7 @@ public class localSearchCalculations implements Runnable {
     int debug = 2;
     int initVal; 
     Boolean maxRatesComputed = false;
+    Boolean respDueDates = false; // set true if you want to generate solutions taking into account due dates
     HashMap<Integer, Integer> maxEvacRates;
 
     data globalData;
@@ -266,8 +267,16 @@ public class localSearchCalculations implements Runnable {
         this.initVal = s.objectiveValue;
         int test = (new Checker()).check(d, s).endingEvacTime;
         Solution baseSol = findBest(d,s);
-        baseSol.objectiveValue = (new Checker()).check(d, baseSol).endingEvacTime;
+        /* Due date check */
+        Checker checkD = (new Checker());
+        checkD.checkDueDate = respDueDates;
+        baseSol.objectiveValue = checkD.check(d, baseSol).endingEvacTime;
         int bestValue = baseSol.objectiveValue;
+        if(bestValue == -1) {
+            Solution sh = new Solution();
+            sh.objectiveValue = Integer.MAX_VALUE;
+            return sh;
+        }
         Solution bestSol = baseSol;
         int nb = 0;
         Boolean foundBest = true;
@@ -287,6 +296,7 @@ public class localSearchCalculations implements Runnable {
                         //sol.objectiveValue = initVal*4; // Pour ne pas que le checker fail à cause de ça (car on a sûrement allongé la durée de l'évac en diminuant le débit)
                         Checker ch = (new Checker());
                         //ch.debugState = 1;
+                        ch.checkDueDate = respDueDates;
                         sol.objectiveValue = ch.check(d,sol).endingEvacTime;
                         if(sol.objectiveValue != -1) {
                             Solution compactedNewSol0 = findBest(d, sol); // 2 cycles pour être sûr de réduire au max
