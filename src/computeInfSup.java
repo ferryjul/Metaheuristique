@@ -20,23 +20,26 @@ public class computeInfSup {
         }
         return max_time;
     }
+    
     private static ArrayList<Integer> computeEvacTimes(data inData){
         ArrayList<Integer> sol = new ArrayList<Integer>();
         for(Path_data aPath : inData.evac_paths.values()) { // iterates over all evac paths
-            int minTime = aPath.population / aPath.max_rate;
-            if((aPath.population % aPath.max_rate) != 0) {
-                minTime++; // Pour "faire passer" le dernier paquet
-            }
-            int travel_time = 0;
+            int travelTime = 0;
             // we compute the sum of the travel times of each edge on the path
             int currNode = aPath.origin;
+            int minCapa = Integer.MAX_VALUE;
             for(int nextNode : aPath.following) {
-                //System.out.println("edge from " + currNode + " to " + nextNode + " !");
-                travel_time+=inData.getEdgeLength(currNode, nextNode);
+                travelTime+=inData.getEdgeLength(currNode, nextNode);
+                if(inData.getEdgeCapa(currNode, nextNode) < minCapa) {
+                    minCapa = inData.getEdgeCapa(currNode, nextNode);
+                }
                 currNode = nextNode;
             }
-            minTime+=travel_time; // durée de trajet des paquets jusqu'au point sûr
-            sol.add(minTime);
+            int nbPaquets = aPath.population / minCapa;
+            if((aPath.population % minCapa) != 0) {
+                nbPaquets++; // Pour "faire passer" le dernier paquet
+            }
+            sol.add(nbPaquets+travelTime);
         }
         return sol;
     }
@@ -53,9 +56,17 @@ public class computeInfSup {
         sol.evacNodesList = new HashMap<Integer,EvacNodeData>();
         for(Path_data evacPath : inData.evac_paths.values()) {
             int evacNode = evacPath.origin;
-            int rate = evacPath.max_rate;
+            int rate = evacPath.max_rate; // this one is sometimes incorrect !
             int beginTime = 0; // all evacuation tasks begin at the same time (time 0)
-            sol.evacNodesList.put(evacNode, new EvacNodeData(rate, beginTime));
+            int currNode = evacPath.origin;
+            int minCapa = Integer.MAX_VALUE;
+            for(int nextNode : evacPath.following) {
+                if(inData.getEdgeCapa(currNode, nextNode) < minCapa) {
+                    minCapa = inData.getEdgeCapa(currNode, nextNode);
+                }
+                currNode = nextNode;
+            }
+            sol.evacNodesList.put(evacNode, new EvacNodeData(minCapa, beginTime));
         }
         Long endTime = java.lang.System.currentTimeMillis();
         sol.computeTime = ((Long)(endTime - startTime)).intValue();
