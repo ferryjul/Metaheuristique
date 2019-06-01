@@ -29,8 +29,8 @@ Pour lire la solution contenue dans le fichier "solutionExemple" :
 > SolutionIO solIO = new SolutionIO();
 > Solution sol = solIO.read("solutionExemple");
 
-Pour écrire dans le fichier "solutionécrite" la solution sol :
->int test = solIO.write(TD_sol, "testwriteIo.txt");
+Pour écrire dans le fichier "solutionécrite.txt" la solution sol :
+>int test = solIO.write(TD_sol, "solutionécrite.txt");
         if (test==0) { System.out.println("Fichier solution créé \n");}
         else { System.out.println("[ERROR] Fichier solution fail \n");}
 
