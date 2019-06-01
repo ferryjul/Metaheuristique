@@ -63,10 +63,10 @@ Si l'utilisateur fait le choix d'utiliser le multi-threading, les Threads seront
 Afin de rendre nos programmes facilement configurables, nous avons, pour plusieurs fichiers, mis en place plusieurs variables globales dont la modification permet de décider le comportement de nos algorithmes. Les variables les plus utiles sont présentées ici.
 
 * `int debug` : présente dans plusieurs de nos fichiers, cette variable peut prendre les valeurs suivantes :
-- 0 : pas d'affichage dans la console
-- 1 : affichage minimal dans la console
-- 2 : affichage de toutes les informations dans la console
-- 3 : affichage détaillé des informations dans la console
+0 : pas d'affichage dans la console
+1 : affichage minimal dans la console
+2 : affichage de toutes les informations dans la console
+3 : affichage détaillé des informations dans la console
 
 * `Boolean checkDueDate` (fichier `Checker.java`) : indique à l'instance correspondante du Checker s'il doit vérifier la contrainte de due date des arcs ou non. Pour tenir compte de ces contraintes dans la recherche locale, IL NE FAUT PAS UTILISER CE PARAMETRE, mais celui ci-après (qui configure en fait celui-ci automatiquement).
 
