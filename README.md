@@ -38,7 +38,7 @@ Pour écrire dans le fichier "solutionécrite.txt" la solution sol :
 Le vérifieur de solution est implémenté par la classe `Checker`. Sa configuration (et notamment pour prendre en considération les due date des ressources) est expliquée plus en détails dans la section "Configuration de nos programmes".
 Il comporte deux constructeurs : 
 - `public Checker()` : le checker va uniquer vérifier la validité de la solution. Il va remplir uniquement le champ `objectiveValue` (valeur de la fonction objectif si la solution est valide, -1 sinon) de la classe `CheckerReturn`. Ceci permet d'éviter des itérations non nécessaires.
--  `public Checker(boolean com)` : le Checker va remplir tous les champs de la classe `CheckerReturn` si la solution est invalide.
+-  `public Checker(boolean com)` : si `com` vaut `true`, le Checker va remplir tous les champs de la classe `CheckerReturn` si la solution est invalide.
 
 Pour vérifier la validité de la Solution sol pour le jeu de données d :
 > Checker ch = new Checker();
