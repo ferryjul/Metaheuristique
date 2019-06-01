@@ -81,3 +81,10 @@ Afin de rendre nos programmes facilement configurables, nous avons, pour plusieu
 ## Utilisation rapide de nos programmes
 **Pour utiliser nos programmes simplement :**
 Le fichier `Test.java` permet de lancer simplement la recherche locale sur une instance. Le calcul des valeurs d'une borne inférieure et d'une borne supérieure est également lancé par ce fichier.  Si `Boolean debug` vaut `true`, la recherche locale s'exécute pour l'exemple simple du TD. S'il faut `false`, alors l'instance résolue par la recherche locale est celle dont le nom est contenue dans la variable `String inst`. A noter que les instances doivent être contenues dans le répertoire `InstancesInt/` de notre repository, et que les fichiers générés le seront au format exigé, dans le dossier `Generated_best_solutions` sous le nom `nomInstanceAAAAMMJJHH:mm:ss` (où `AAAAMMJJHH:mm:ss` est la date de fin de l'exécution de notre recherche locale).
+
+## Notes sur l'utilisation du Checker en ligne
+
+Le Checker en ligne mis à disposition par l'équipe éducative est restrictif sur le format des solutions acceptées. Il n'accepte en effet que les solutions dans lesquelles les noeuds d'évacuation sont présentés dans le même ordre que dans le jeu de données. Or, cet ordre semble arbitraire, et par conséquent nos solutions générées ne le respectent par forcément. De plus, notre Checker est indifférent à l'ordre d'écriture des noeuds dans le fichier solution.
+Toutefois, afin de pouvoir utiliser le Checker en ligne, nous avons implémenté la classe `sortSolution`.
+Sa méthode `public static int sortAndSaveSol(Solution sol, data d, String name)` enregistre la solution `Sol` pour le jeu de données `d`, au nom `name`, en respectant l'ordre de déclaration des noeuds à évacuer dans le jeu de données.
+Le fichier `debugTool` fonctionne selon le même principe que `Test` (présenté précédemment), mais utilise cette version modifiée de l'enregistreur de solutions.
