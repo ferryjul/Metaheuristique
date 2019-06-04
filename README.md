@@ -6,6 +6,8 @@ Pour compiler :
 Pour lancer la recherche locale : 
 >java Test
 
+Le dossier `Generated_Best_Solutions` contient nos solutions générées. Son sous-dossier `report` contient les exemples que nous avons utilisés dans notre rapport.
+
 ## Fonctions implémentant les fonctionalités requises
 
 ### Lecture d'un jeu de données
